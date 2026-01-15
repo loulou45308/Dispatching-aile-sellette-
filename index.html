@@ -11,11 +11,11 @@
     <div class="max-w-md mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-3xl font-black text-blue-400 uppercase tracking-tighter">Dispatch Matos</h1>
-            <p class="text-slate-500 text-sm">Gestion des ailes et sellettes</p>
+            <p class="text-slate-500 text-sm italic">Prêt pour le gonflage ?</p>
         </header>
 
         <div class="bg-slate-800 p-5 rounded-2xl mb-8 border border-slate-700 shadow-xl">
-            <label class="block text-xs font-bold text-blue-300 mb-3 uppercase tracking-widest">Importer Stage (CSV)</label>
+            <label class="block text-xs font-bold text-blue-300 mb-3 uppercase tracking-widest text-center">Charger la liste des stagiaires</label>
             <input type="file" id="csvFile" accept=".csv" 
                 class="block w-full text-sm text-slate-400
                 file:mr-4 file:py-2 file:px-4
@@ -27,7 +27,7 @@
 
         <div id="liste-stagiaires" class="space-y-4">
             <div class="text-center py-10 text-slate-600 italic border-2 border-dashed border-slate-800 rounded-2xl">
-                Aucun stagiaire chargé.<br>Sélectionnez votre fichier CSV pour commencer.
+                En attente du fichier CSV...
             </div>
         </div>
     </div>
@@ -47,17 +47,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- LECTURE DU FICHIER EXCEL / CSV ---
+        // --- LECTURE DU FICHIER CSV ---
         document.getElementById('csvFile').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = function() {
                 const lignes = reader.result.split('\n');
                 
                 lignes.forEach((ligne, index) => {
-                    const colonnes = ligne.split(',');
+                    const colonnes = ligne.split(','); // Remplace par ';' si ça ne marche pas
                     
-                    // On commence après l'en-tête (ligne 8 du CSV fourni)
-                    // colonnes[4] = Nom, colonnes[7] = Poids, colonnes[8] = Taille
+                    // On filtre pour ne prendre que les lignes avec un nom (colonne index 4)
                     if (index > 6 && colonnes[4] && colonnes[4].trim() !== "" && colonnes[4] !== "Nom Client") {
                         addDoc(collection(db, "stagiaires"), {
                             nom: colonnes[4].trim(),
@@ -67,7 +66,7 @@
                         });
                     }
                 });
-                alert("Importation réussie !");
+                alert("Stagiaires ajoutés à la base !");
             };
             reader.readAsText(e.target.files[0]);
         });
@@ -83,31 +82,32 @@
                 const ptv = (Number(s.poids) || 0) + 15;
                 const tailleCM = s.taille < 3 ? Math.round(s.taille * 100) : s.taille;
 
-                // --- LOGIQUE DE DISPATCH ---
+                // Logique Voile (Basé sur PTV)
                 let aile = "L"; 
                 if (ptv < 80) aile = "S";
                 else if (ptv <= 100) aile = "M";
 
+                // Logique Sellette (Basé sur Taille)
                 let sellette = "M";
                 if (tailleCM < 170) sellette = "S";
                 else if (tailleCM > 185) sellette = "L";
 
                 liste.innerHTML += `
-                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border-b-4 border-blue-500 shadow-blue-900/20">
-                        <div class="p-4 flex justify-between items-center">
-                            <div class="flex-1">
-                                <h3 class="text-xl font-black text-slate-900 uppercase leading-none">${s.nom}</h3>
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border-b-4 border-blue-500">
+                        <div class="p-4 flex justify-between items-center text-slate-900">
+                            <div>
+                                <h3 class="text-xl font-black uppercase leading-none">${s.nom}</h3>
                                 <p class="text-slate-400 text-xs font-bold mt-1">${tailleCM} CM / ${s.poids} KG</p>
                             </div>
                             <div class="text-right">
                                 <span class="block text-2xl font-black text-blue-600 leading-none">${ptv}</span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">PTV ESTIMÉ</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase italic">PTV Estimé</span>
                             </div>
                         </div>
                         
                         <div class="bg-slate-50 p-3 flex gap-2 border-t border-slate-100">
                             <div class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg">
-                                <span class="block text-[10px] opacity-70 font-bold uppercase">Voile</span>
+                                <span class="block text-[10px] opacity-70 font-bold uppercase">Voile conseillée</span>
                                 <span class="text-lg font-black">${aile}</span>
                             </div>
                             <div class="flex-1 bg-slate-800 text-white text-center py-2 rounded-lg">
