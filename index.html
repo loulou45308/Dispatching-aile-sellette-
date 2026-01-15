@@ -6,18 +6,29 @@
     <title>Dispatch Matos - École de Parapente</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans">
 
     <div class="max-w-md mx-auto">
-        <h1 class="text-3xl font-black mb-6 text-center text-blue-400 uppercase tracking-wider">Dispatch Matos</h1>
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-black text-blue-400 uppercase tracking-tighter">Dispatch Matos</h1>
+            <p class="text-slate-500 text-sm">Gestion des ailes et sellettes</p>
+        </header>
 
-        <div class="bg-slate-800 p-4 rounded-xl mb-6 border-2 border-dashed border-slate-600">
-            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Importer "Stage init 1.csv"</label>
-            <input type="file" id="csvFile" accept=".csv" class="text-sm block w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+        <div class="bg-slate-800 p-5 rounded-2xl mb-8 border border-slate-700 shadow-xl">
+            <label class="block text-xs font-bold text-blue-300 mb-3 uppercase tracking-widest">Importer Stage (CSV)</label>
+            <input type="file" id="csvFile" accept=".csv" 
+                class="block w-full text-sm text-slate-400
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-bold
+                file:bg-blue-600 file:text-white
+                hover:file:bg-blue-500 file:cursor-pointer">
         </div>
 
-        <div id="liste-stagiaires" class="space-y-3">
-            <p class="text-center text-slate-500 italic">En attente de données...</p>
+        <div id="liste-stagiaires" class="space-y-4">
+            <div class="text-center py-10 text-slate-600 italic border-2 border-dashed border-slate-800 rounded-2xl">
+                Aucun stagiaire chargé.<br>Sélectionnez votre fichier CSV pour commencer.
+            </div>
         </div>
     </div>
 
@@ -36,7 +47,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- FONCTION D'IMPORTATION DU CSV ---
+        // --- LECTURE DU FICHIER EXCEL / CSV ---
         document.getElementById('csvFile').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -44,8 +55,9 @@
                 
                 lignes.forEach((ligne, index) => {
                     const colonnes = ligne.split(',');
-                    // On commence à la ligne où il y a des données (Marc est vers la ligne 8-9)
-                    // On vérifie que la colonne "Nom Client" (index 4) n'est pas vide
+                    
+                    // On commence après l'en-tête (ligne 8 du CSV fourni)
+                    // colonnes[4] = Nom, colonnes[7] = Poids, colonnes[8] = Taille
                     if (index > 6 && colonnes[4] && colonnes[4].trim() !== "" && colonnes[4] !== "Nom Client") {
                         addDoc(collection(db, "stagiaires"), {
                             nom: colonnes[4].trim(),
@@ -55,38 +67,53 @@
                         });
                     }
                 });
-                alert("Importation terminée !");
+                alert("Importation réussie !");
             };
             reader.readAsText(e.target.files[0]);
         });
 
-        // --- AFFICHAGE EN TEMPS RÉEL ---
-        onSnapshot(collection(db, "stagiaires"), (snapshot) => {
+        // --- AFFICHAGE EN DIRECT ---
+        const q = query(collection(db, "stagiaires"), orderBy("nom", "asc"));
+        onSnapshot(q, (snapshot) => {
             const liste = document.getElementById("liste-stagiaires");
             liste.innerHTML = "";
             
             snapshot.forEach((doc) => {
                 const s = doc.data();
                 const ptv = (Number(s.poids) || 0) + 15;
-                
-                // Calcul automatique des tailles (ajustable selon ton matos)
-                let aile = ptv < 80 ? "S" : (ptv <= 100 ? "M" : "L");
-                let sellette = s.taille < 1.70 ? "S" : (s.taille <= 1.85 ? "M" : "L");
+                const tailleCM = s.taille < 3 ? Math.round(s.taille * 100) : s.taille;
+
+                // --- LOGIQUE DE DISPATCH ---
+                let aile = "L"; 
+                if (ptv < 80) aile = "S";
+                else if (ptv <= 100) aile = "M";
+
+                let sellette = "M";
+                if (tailleCM < 170) sellette = "S";
+                else if (tailleCM > 185) sellette = "L";
 
                 liste.innerHTML += `
-                    <div class="bg-white text-slate-900 p-4 rounded-xl shadow-lg border-l-8 border-blue-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="text-xl font-black uppercase">${s.nom}</div>
-                                <div class="text-sm text-slate-500">${s.taille}m / ${s.poids}kg</div>
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border-b-4 border-blue-500 shadow-blue-900/20">
+                        <div class="p-4 flex justify-between items-center">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-black text-slate-900 uppercase leading-none">${s.nom}</h3>
+                                <p class="text-slate-400 text-xs font-bold mt-1">${tailleCM} CM / ${s.poids} KG</p>
                             </div>
                             <div class="text-right">
-                                <div class="text-2xl font-black text-blue-600">${ptv}<span class="text-xs ml-1 text-slate-400">PTV</span></div>
+                                <span class="block text-2xl font-black text-blue-600 leading-none">${ptv}</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">PTV ESTIMÉ</span>
                             </div>
                         </div>
-                        <div class="mt-3 flex gap-2">
-                            <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase border border-blue-200">Voile ${aile}</span>
-                            <span class="bg-slate-100 text-slate-800 text-xs font-bold px-3 py-1 rounded-full uppercase border border-slate-200">Selt. ${sellette}</span>
+                        
+                        <div class="bg-slate-50 p-3 flex gap-2 border-t border-slate-100">
+                            <div class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg">
+                                <span class="block text-[10px] opacity-70 font-bold uppercase">Voile</span>
+                                <span class="text-lg font-black">${aile}</span>
+                            </div>
+                            <div class="flex-1 bg-slate-800 text-white text-center py-2 rounded-lg">
+                                <span class="block text-[10px] opacity-70 font-bold uppercase">Sellette</span>
+                                <span class="text-lg font-black">${sellette}</span>
+                            </div>
                         </div>
                     </div>`;
             });
