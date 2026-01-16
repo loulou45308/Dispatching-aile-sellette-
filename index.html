@@ -10,7 +10,7 @@
 <body class="bg-slate-100 p-4 font-sans text-slate-900">
 
     <div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden p-6">
-        <h1 class="text-2xl font-black text-center mb-6 uppercase text-blue-800 tracking-tighter">Dispatching & Logistique École</h1>
+        <h1 class="text-2xl font-black text-center mb-6 uppercase text-blue-800">Dispatching & Logistique École</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
@@ -22,46 +22,43 @@
             <div class="p-4 bg-slate-50 rounded-xl border-2 border-slate-200">
                 <label class="block text-[10px] font-black uppercase text-slate-500 mb-2">2. Charger le ou les stages (CSV)</label>
                 <input type="file" id="importStagiaires" class="text-xs w-full cursor-pointer" multiple>
-                <p class="text-[9px] mt-2 text-slate-400">Jusqu'à 3 fichiers de stage simultanés</p>
+                <p class="text-[9px] mt-2 text-slate-400">Sélectionnez vos fichiers de stage</p>
             </div>
             
             <div class="flex flex-col gap-2">
-                <button id="btnDispatch" class="bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 uppercase text-sm transition-all active:scale-95">Lancer le Dispatching</button>
+                <button id="btnDispatch" class="bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 uppercase text-sm">Lancer le Dispatching</button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="btnVider" class="bg-red-100 text-red-600 font-bold py-2 rounded-xl text-[10px] uppercase hover:bg-red-200 transition">Vider Liste</button>
-                    <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 rounded-xl text-[10px] uppercase hover:bg-black transition">Export PDF</button>
+                    <button id="btnVider" class="bg-red-500 text-white font-bold py-2 rounded-xl text-[10px] uppercase">Vider Liste</button>
+                    <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 rounded-xl text-[10px] uppercase">Export PDF</button>
                 </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
             <table id="tableDispatch" class="w-full text-left border-collapse text-[10px]">
                 <thead>
                     <tr class="bg-slate-800 text-white uppercase tracking-wider">
-                        <th class="p-3 border border-slate-700">Nom Client</th>
-                        <th class="p-3 border border-slate-700">Né(e) le</th>
-                        <th class="p-3 border border-slate-700 text-center">Poids</th>
-                        <th class="p-3 border border-slate-700 text-center">Taille</th>
-                        <th class="p-3 border border-slate-700 text-orange-400 text-center">Solde</th>
-                        <th class="p-3 border border-slate-700 bg-blue-700 text-center">Voile (n°)</th>
-                        <th class="p-3 border border-slate-700 bg-slate-700 text-center">Selt.</th>
-                        <th class="p-3 border border-slate-700">Observations</th>
-                        <th class="p-3 border border-slate-700 text-slate-400">Casque</th>
-                        <th class="p-3 border border-slate-700 text-slate-400">Radio</th>
+                        <th class="p-3 border">Nom Client</th>
+                        <th class="p-3 border">Né(e) le</th>
+                        <th class="p-3 border text-center">Poids</th>
+                        <th class="p-3 border text-center">Taille</th>
+                        <th class="p-3 border text-orange-400 text-center">Solde</th>
+                        <th class="p-3 border bg-blue-700 text-center">Voile (n°)</th>
+                        <th class="p-3 border bg-slate-700 text-center">Selt.</th>
+                        <th class="p-3 border">Observations</th>
+                        <th class="p-3 border text-slate-400">Casque</th>
+                        <th class="p-3 border text-slate-400">Radio</th>
                     </tr>
                 </thead>
-                <tbody id="liste-stagiaires" class="bg-white">
-                    <tr>
-                        <td colspan="10" class="p-10 text-center text-slate-400 italic text-sm">En attente de chargement des stagiaires...</td>
-                    </tr>
-                </tbody>
+                <tbody id="liste-stagiaires" class="bg-white text-slate-700 font-bold uppercase">
+                    </tbody>
             </table>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBAiOJog5nwXDn8k6YTWLJA-0CxNaQUXhk",
@@ -74,40 +71,119 @@
         const db = getFirestore(app);
 
         // --- 1. IMPORT PARC ---
-        document.getElementById('importParc').addEventListener('change', (e) => {
+        document.getElementById('importParc').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = async () => {
                 const lignes = reader.result.split('\n');
-                const batch = writeBatch(db);
                 const oldParc = await getDocs(collection(db, "parc_ailes"));
-                oldParc.forEach(d => batch.delete(d.ref));
+                for (const d of oldParc.docs) { await deleteDoc(d.ref); }
 
-                lignes.forEach((ligne) => {
+                for (const ligne of lignes) {
                     const cols = ligne.split(';');
                     if (cols[1] && cols[2] && !isNaN(parseInt(cols[1]))) {
                         const ptvStr = cols[2].replace('_', '-');
                         const ptvRange = ptvStr.split('-');
                         if(ptvRange.length === 2) {
-                            batch.set(doc(collection(db, "parc_ailes")), { 
+                            await addDoc(collection(db, "parc_ailes"), { 
                                 num: cols[1].trim(), 
                                 ptvMin: parseInt(ptvRange[0]), 
                                 ptvMax: parseInt(ptvRange[1]) 
                             });
                         }
                     }
-                });
-                await batch.commit();
-                alert("Parc école chargé avec succès !");
+                }
+                alert("Parc école chargé !");
             };
             reader.readAsText(e.target.files[0]);
         });
 
-        // --- 2. IMPORT STAGIAIRES (AFFICHAGE IMMÉDIAT) ---
-        document.getElementById('importStagiaires').addEventListener('change', (e) => {
+        // --- 2. IMPORT STAGIAIRES ---
+        document.getElementById('importStagiaires').addEventListener('change', function(e) {
             const files = e.target.files;
             for (let f of files) {
                 const reader = new FileReader();
                 reader.onload = async () => {
                     const lignes = reader.result.split('\n');
-                    const batch = writeBatch(db);
-                    for (let i =
+                    for (let i = 8; i < lignes.length; i++) {
+                        const cols = lignes[i].split(',');
+                        const nom = cols[4] ? cols[4].replace(/"/g, '').trim() : "";
+                        if (nom && nom !== "Nom Client") {
+                            await addDoc(collection(db, "stagiaires"), {
+                                nom: nom,
+                                dob: cols[6] || "",
+                                solde: cols[3] || "0",
+                                poids: parseFloat(cols[7]) || 0,
+                                taille: parseFloat(cols[8]) || 0,
+                                obs: cols[9] || "",
+                                voile: "", 
+                                sellette: ""
+                            });
+                        }
+                    }
+                };
+                reader.readAsText(f);
+            }
+        });
+
+        // --- ACTIONS BOUTONS ---
+        document.getElementById('btnVider').onclick = async () => {
+            if(!confirm("Vider la liste ?")) return;
+            const snap = await getDocs(collection(db, "stagiaires"));
+            for (const d of snap.docs) { await deleteDoc(d.ref); }
+        };
+
+        document.getElementById('btnDispatch').onclick = async () => {
+            const stagiairesSnap = await getDocs(collection(db, "stagiaires"));
+            const parcSnap = await getDocs(collection(db, "parc_ailes"));
+            if (parcSnap.empty) { alert("Chargez d'abord le Parc École (1)"); return; }
+
+            let stockAiles = parcSnap.docs.map(d => d.data());
+            let ailesPrises = [];
+
+            for (const d of stagiairesSnap.docs) {
+                const s = d.data();
+                const ptv = (Number(s.poids) || 0) + 15;
+                let vAttr = "STOCK";
+                
+                const match = stockAiles.find(a => ptv >= a.ptvMin && ptv <= a.ptvMax && !ailesPrises.includes(a.num));
+                if (match) { vAttr = match.num; ailesPrises.push(match.num); }
+
+                const t = s.taille < 3 ? s.taille * 100 : s.taille;
+                let selt = "M";
+                if(t < 165) selt = "S"; else if(t > 185) selt = "L"; else if(t > 195) selt = "XL";
+
+                await updateDoc(d.ref, { voile: vAttr, sellette: selt });
+            }
+            alert("Dispatch terminé !");
+        };
+
+        document.getElementById('btnPdf').onclick = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.text("DISPATCHING MATÉRIEL", 14, 15);
+            doc.autoTable({ html: '#tableDispatch', startY: 20, theme: 'grid', styles: {fontSize: 7} });
+            doc.save('dispatch.pdf');
+        };
+
+        // --- AFFICHAGE ---
+        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
+            const list = document.getElementById("liste-stagiaires");
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const s = d.data();
+                list.innerHTML += `<tr class="border-b">
+                    <td class="p-3 border-r">${s.nom}</td>
+                    <td class="p-3 border-r text-slate-500">${s.dob}</td>
+                    <td class="p-3 border-r text-center">${s.poids}kg</td>
+                    <td class="p-3 border-r text-center">${s.taille < 3 ? Math.round(s.taille*100) : s.taille}cm</td>
+                    <td class="p-3 border-r text-orange-600 text-center">${s.solde}€</td>
+                    <td class="p-3 border-r text-center font-black text-blue-700 bg-blue-50">${s.voile || '-'}</td>
+                    <td class="p-3 border-r text-center">${s.sellette || '-'}</td>
+                    <td class="p-3 border-r text-[8px] normal-case italic">${s.obs}</td>
+                    <td class="p-3 border-r"></td><td class="p-3"></td>
+                </tr>`;
+            });
+        });
+    </script>
+</body>
+</html>
