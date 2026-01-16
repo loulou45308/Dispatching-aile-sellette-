@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch PRO v6</title>
+    <title>Dispatch Parapente PRO v7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
@@ -10,31 +10,40 @@
 <body class="bg-slate-100 p-4 font-sans text-slate-900">
 
     <div class="max-w-7xl mx-auto">
-        <header class="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200 flex justify-between items-center">
+        <header class="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200 flex flex-wrap justify-between items-center gap-4">
             <div>
-                <h1 id="nomStage" class="text-2xl font-black text-blue-900 uppercase">EN ATTENTE DE STAGE...</h1>
+                <h1 id="nomStage" class="text-2xl font-black text-blue-900 uppercase tracking-tighter">PRÊT POUR LE CHARGEMENT</h1>
                 <div class="flex gap-4 mt-2">
                     <span class="text-[10px] font-bold text-slate-400 uppercase">Véhicule: <span id="valVehicule" class="text-blue-600">-</span></span>
                     <span class="text-[10px] font-bold text-slate-400 uppercase">Moniteurs: <span id="valMoniteurs" class="text-blue-600">-</span></span>
                 </div>
             </div>
-            <div class="flex gap-3">
-                <div id="vParc" class="hidden items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black border border-green-200 uppercase">✓ Parc Validé</div>
-                <div id="vStage" class="hidden items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black border border-green-200 uppercase">✓ Stage Validé</div>
+            
+            <div id="displayStock" class="flex gap-2">
+                <div class="bg-blue-600 text-white p-3 rounded-2xl text-center min-w-[100px] shadow-lg shadow-blue-100">
+                    <span class="block text-[9px] uppercase font-bold opacity-80">Voiles dispos</span>
+                    <span id="countVoiles" class="text-xl font-black">0</span>
+                </div>
+                <div class="bg-slate-800 text-white p-3 rounded-2xl text-center min-w-[100px]">
+                    <span class="block text-[9px] uppercase font-bold opacity-80">Stagiaires</span>
+                    <span id="countStags" class="text-xl font-black">0</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <div id="vParc" class="hidden items-center gap-2 bg-green-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">✓ PARC OK</div>
+                <div id="vStage" class="hidden items-center gap-2 bg-green-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">✓ STAGE OK</div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-center">
-            <div class="relative group border-2 border-dashed border-blue-200 bg-blue-50/50 p-6 rounded-3xl hover:border-blue-500 transition-all cursor-pointer">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="relative group border-2 border-dashed border-blue-400 bg-blue-50/50 p-5 rounded-3xl hover:bg-blue-100 transition-all cursor-pointer text-center">
                 <input type="file" id="importParc" class="absolute inset-0 opacity-0 cursor-pointer">
-                <p class="font-black text-xs text-blue-700 uppercase">1. Charger Parc École</p>
-                <p class="text-[9px] text-blue-400 italic">Glissez "aile sellette.csv"</p>
+                <p class="font-black text-xs text-blue-800 uppercase italic">1. Charger "aile sellette.csv"</p>
             </div>
-
-            <div class="relative group border-2 border-dashed border-slate-300 bg-white p-6 rounded-3xl hover:border-slate-500 transition-all cursor-pointer">
+            <div class="relative group border-2 border-dashed border-slate-300 bg-white p-5 rounded-3xl hover:border-blue-400 transition-all cursor-pointer text-center">
                 <input type="file" id="importStagiaires" class="absolute inset-0 opacity-0 cursor-pointer" multiple>
-                <p class="font-black text-xs text-slate-700 uppercase">2. Charger Stages</p>
-                <p class="text-[9px] text-slate-400 italic">Glissez "Stage init 1.csv"</p>
+                <p class="font-black text-xs text-slate-700 uppercase italic">2. Charger "Stage init 1.csv"</p>
             </div>
         </div>
 
@@ -42,8 +51,8 @@
             <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
                 <button id="btnDispatch" class="bg-blue-600 hover:bg-blue-800 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-xl transition-all uppercase">Lancer le Dispatching</button>
                 <div class="flex gap-2">
-                    <button id="btnPdf" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-bold text-xs uppercase">PDF</button>
-                    <button id="btnVider" class="bg-white border border-red-200 text-red-500 px-6 py-4 rounded-2xl font-bold text-xs uppercase">Vider</button>
+                    <button id="btnPdf" class="bg-slate-100 text-slate-700 px-6 py-4 rounded-2xl font-bold text-xs uppercase hover:bg-slate-200">PDF</button>
+                    <button id="btnVider" class="bg-red-50 text-red-600 px-6 py-4 rounded-2xl font-bold text-xs uppercase hover:bg-red-100">Réinitialiser</button>
                 </div>
             </div>
 
@@ -55,7 +64,7 @@
                             <th class="p-4 font-black text-center text-orange-600">Solde</th>
                             <th class="p-4 font-black text-center">Poids</th>
                             <th class="p-4 font-black text-center">Taille</th>
-                            <th class="p-4 font-black text-center bg-blue-600 text-white">Voile</th>
+                            <th class="p-4 font-black text-center bg-blue-600 text-white font-bold">Voile</th>
                             <th class="p-4 font-black text-center bg-slate-700 text-white font-bold">Selt.</th>
                             <th class="p-4 font-black">Observations</th>
                         </tr>
@@ -89,13 +98,23 @@
                 const batch = writeBatch(db);
                 const old = await getDocs(collection(db, "parc_ailes"));
                 old.forEach(d => batch.delete(d.ref));
+                
+                let countV = 0;
                 rows.forEach(c => {
                     if(c[1] && !isNaN(c[1]) && c[2]) {
                         const p = c[2].replace('_','-').split('-');
-                        if(p.length === 2) batch.set(doc(collection(db, "parc_ailes")), { num: c[1], min: parseInt(p[0]), max: parseInt(p[1]) });
+                        if(p.length === 2) {
+                            batch.set(doc(collection(db, "parc_ailes")), { 
+                                num: c[1].trim(), 
+                                min: parseInt(p[0]), 
+                                max: parseInt(p[1]) 
+                            });
+                            countV++;
+                        }
                     }
                 });
                 await batch.commit();
+                document.getElementById('countVoiles').innerText = countV;
                 document.getElementById('vParc').classList.remove('hidden');
                 document.getElementById('vParc').classList.add('flex');
             };
@@ -109,7 +128,87 @@
                 reader.onload = async () => {
                     const rows = reader.result.split('\n').map(l => l.split(';'));
                     
-                    // Lecture Entête
                     if(rows[0]) {
-                        document.getElementById('nomStage').innerText = rows[0][1] || "STAGE CHARGÉ";
-                        document.getElementById('
+                        document.getElementById('nomStage').innerText = rows[0][1] || "STAGE";
+                        document.getElementById('valVehicule').innerText = rows[0][5] || "-";
+                    }
+                    if(rows[1] || rows[2]) {
+                        const m1 = rows[1] ? rows[1][5] : "";
+                        const m2 = rows[2] ? rows[2][5] : "";
+                        document.getElementById('valMoniteurs').innerText = [m1, m2].filter(x => x && x.trim() !== "").join(" / ");
+                    }
+
+                    for (let i = 7; i < rows.length; i++) {
+                        const c = rows[i];
+                        if (c && c[4] && c[4].trim() !== "" && c[4] !== "Nom Client") {
+                            await addDoc(collection(db, "stagiaires"), {
+                                nom: c[4].trim(),
+                                solde: c[3] || "0",
+                                poids: parseFloat(c[7]) || 0,
+                                taille: parseFloat(c[8]) || 0,
+                                obs: c[9] || "",
+                                voile: "", sellette: ""
+                            });
+                        }
+                    }
+                    document.getElementById('vStage').classList.remove('hidden');
+                    document.getElementById('vStage').classList.add('flex');
+                };
+                reader.readAsText(f);
+            });
+        });
+
+        // --- ACTIONS ---
+        document.getElementById('btnVider').onclick = async () => {
+            const snap = await getDocs(collection(db, "stagiaires"));
+            for (const d of snap.docs) await deleteDoc(d.ref);
+            location.reload(); 
+        };
+
+        document.getElementById('btnDispatch').onclick = async () => {
+            const [stags, stock] = await Promise.all([getDocs(collection(db, "stagiaires")), getDocs(collection(db, "parc_ailes"))]);
+            let ailes = stock.docs.map(d => d.data());
+            let prises = [];
+            for (const d of stags.docs) {
+                const s = d.data();
+                const ptv = (s.poids || 0) + 15;
+                const match = ailes.find(a => ptv >= a.min && ptv <= a.max && !prises.includes(a.num));
+                let v = "STOCK";
+                if(match) { v = match.num; prises.push(v); }
+                const h = s.taille < 3 ? s.taille * 100 : s.taille;
+                let sel = h < 165 ? "S" : (h > 185 ? "L" : "M");
+                await updateDoc(d.ref, { voile: v, sellette: sel });
+            }
+        };
+
+        document.getElementById('btnPdf').onclick = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.text("DISPATCHING : " + document.getElementById('nomStage').innerText, 14, 15);
+            doc.autoTable({ html: '#tableDispatch', startY: 22, theme: 'grid', styles: {fontSize: 8} });
+            doc.save('dispatch.pdf');
+        };
+
+        // --- SYNC AFFICHAGE ---
+        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
+            const list = document.getElementById("liste-stagiaires");
+            document.getElementById('countStags').innerText = snap.size;
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const s = d.data();
+                const t = s.taille < 3 ? Math.round(s.taille*100) : s.taille;
+                list.innerHTML += `
+                <tr class="hover:bg-slate-50 transition-colors border-b">
+                    <td class="p-4 border-r text-slate-900 font-black">${s.nom}</td>
+                    <td class="p-4 border-r text-center text-red-600 font-black">${s.solde}€</td>
+                    <td class="p-4 border-r text-center text-slate-500">${s.poids}kg</td>
+                    <td class="p-4 border-r text-center text-slate-500">${t}cm</td>
+                    <td class="p-4 border-r text-center font-black text-blue-700 bg-blue-50/50">${s.voile || '-'}</td>
+                    <td class="p-4 border-r text-center text-slate-700 bg-slate-50/50">${s.sellette || '-'}</td>
+                    <td class="p-4 text-[9px] font-normal normal-case italic text-slate-400 leading-none">${s.obs}</td>
+                </tr>`;
+            });
+        });
+    </script>
+</body>
+</html>
