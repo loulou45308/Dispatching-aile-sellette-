@@ -2,67 +2,69 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch PRO - Interface Moniteur</title>
+    <title>Logiciel Dispatch Parapente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body class="bg-slate-50 p-4 md:p-8 font-sans">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-8 flex justify-between items-end">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-wrap justify-between items-center">
             <div>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">DISPATCH MATÉRIEL</h1>
-                <p class="text-slate-500 font-medium">Gestion des ailes et sellettes en temps réel</p>
+                <h1 id="nomStage" class="text-2xl font-black text-blue-900 uppercase tracking-tight">NOM DU STAGE</h1>
+                <p class="text-slate-500 font-medium">Fiche de dispatching journalière</p>
             </div>
-            <div id="badgeStock" class="hidden bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-bold border border-green-200">
-                ✓ PARC ÉCOLE CHARGÉ
+            <div class="flex gap-6 text-sm">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Véhicule</span>
+                    <span id="valVehicule" class="font-bold text-slate-700">-</span>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Moniteurs</span>
+                    <span id="valMoniteurs" class="font-bold text-slate-700">-</span>
+                </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div class="relative group">
-                <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">ÉTAPE 1</div>
-                <div class="border-2 border-dashed border-blue-200 bg-blue-50/50 p-8 rounded-2xl hover:border-blue-400 transition-all text-center">
-                    <input type="file" id="importParc" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <p class="text-blue-700 font-bold text-sm">Charger le Parc École</p>
-                    <p class="text-blue-400 text-[10px] mt-1">Glissez "aile sellette.csv" ici</p>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="relative group border-2 border-dashed border-blue-200 bg-blue-50/30 p-6 rounded-2xl text-center">
+                <input type="file" id="importParc" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <p id="txtParc" class="text-blue-700 font-bold text-sm">1. Charger le Parc École (aile sellette.csv)</p>
             </div>
 
-            <div class="relative group">
-                <div class="absolute -top-3 left-4 bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">ÉTAPE 2</div>
-                <div class="border-2 border-dashed border-slate-200 bg-white p-8 rounded-2xl hover:border-slate-400 transition-all text-center">
-                    <input type="file" id="importStagiaires" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" multiple>
-                    <p class="text-slate-700 font-bold text-sm">Charger les Stagiaires</p>
-                    <p class="text-slate-400 text-[10px] mt-1">Sélectionnez vos fichiers de stage</p>
-                </div>
+            <div class="relative group border-2 border-dashed border-slate-200 bg-white p-6 rounded-2xl text-center">
+                <input type="file" id="importStagiaires" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" multiple>
+                <p id="txtStage" class="text-slate-700 font-bold text-sm">2. Charger les Stages (Fichiers Stagiaires)</p>
             </div>
         </div>
 
-        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
-            <div class="p-6 border-b border-slate-50 flex flex-wrap gap-4 justify-between items-center bg-slate-50/50">
-                <div class="flex gap-2">
-                    <button id="btnDispatch" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">Calculer le Dispatching</button>
-                    <button id="btnPdf" class="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all">Imprimer PDF</button>
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50/50">
+                <div class="flex gap-3">
+                    <button id="btnDispatch" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-100 transition-all active:scale-95">Lancer le Dispatching</button>
+                    <button id="btnPdf" class="bg-slate-800 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all">Export PDF</button>
                 </div>
-                <button id="btnVider" class="text-rose-500 hover:text-rose-700 font-bold text-xs uppercase tracking-widest">Réinitialiser la liste</button>
+                <button id="btnVider" class="text-red-500 hover:underline font-bold text-xs uppercase tracking-widest">Réinitialiser</button>
             </div>
 
             <div class="overflow-x-auto">
-                <table id="tableDispatch" class="w-full text-left border-collapse">
+                <table id="tableDispatch" class="w-full text-left">
                     <thead>
-                        <tr class="text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100">
-                            <th class="p-4 font-black">Stagiaire</th>
-                            <th class="p-4 font-black text-center">Poids / Taille</th>
-                            <th class="p-4 font-black text-center text-orange-500">Solde</th>
-                            <th class="p-4 font-black text-center bg-blue-50/50 text-blue-600">Voile</th>
-                            <th class="p-4 font-black text-center">Sellette</th>
-                            <th class="p-4 font-black">Observations</th>
+                        <tr class="text-[10px] uppercase tracking-widest text-slate-400 border-b bg-slate-50">
+                            <th class="p-4 font-black">Nom Client</th>
+                            <th class="p-4 font-black text-center text-orange-600">Solde Dû</th>
+                            <th class="p-4 font-black text-center">Poids</th>
+                            <th class="p-4 font-black text-center">Taille</th>
+                            <th class="p-4 font-black text-center bg-blue-600 text-white">Voile</th>
+                            <th class="p-4 font-black text-center bg-slate-700 text-white">Sellette</th>
+                            <th class="p-4 font-black">Casque</th>
+                            <th class="p-4 font-black">Radio</th>
                         </tr>
                     </thead>
-                    <tbody id="liste-stagiaires" class="divide-y divide-slate-50">
-                        </tbody>
+                    <tbody id="liste-stagiaires" class="divide-y divide-slate-100 uppercase font-bold text-xs">
+                        <tr><td colspan="8" class="p-10 text-center text-slate-300 italic">En attente de fichiers...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -82,54 +84,75 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- INTELLIGENT CSV PARSER ---
-        const parseCSV = (text, delimiter) => {
-            return text.split('\n').map(row => row.split(delimiter).map(cell => cell.trim().replace(/^"|"$/g, '')));
+        // --- PARSEUR ROBUSTE ---
+        const getCols = (line) => {
+            let result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let char of line) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+                else current += char;
+            }
+            result.push(current.trim());
+            return result;
         };
 
         // --- IMPORT PARC ---
         document.getElementById('importParc').addEventListener('change', async (e) => {
             const reader = new FileReader();
             reader.onload = async () => {
-                const rows = parseCSV(reader.result, ';');
+                const lines = reader.result.split('\n');
                 const batch = writeBatch(db);
                 const old = await getDocs(collection(db, "parc_ailes"));
                 old.forEach(d => batch.delete(d.ref));
-
-                rows.forEach(cols => {
-                    if (cols[1] && !isNaN(cols[1]) && cols[2]) {
-                        const ptv = cols[2].replace('_', '-').split('-');
-                        if(ptv.length === 2) {
-                            batch.set(doc(collection(db, "parc_ailes")), { num: cols[1], min: parseInt(ptv[0]), max: parseInt(ptv[1]) });
-                        }
+                lines.forEach(l => {
+                    const c = l.split(';');
+                    if(c[1] && !isNaN(c[1]) && c[2]) {
+                        const p = c[2].replace('_','-').split('-');
+                        if(p.length === 2) batch.set(doc(collection(db, "parc_ailes")), { num: c[1], min: parseInt(p[0]), max: parseInt(p[1]) });
                     }
                 });
                 await batch.commit();
-                document.getElementById('badgeStock').classList.remove('hidden');
+                document.getElementById('txtParc').innerText = "✅ PARC ÉCOLE CHARGÉ";
             };
             reader.readAsText(e.target.files[0]);
         });
 
-        // --- IMPORT STAGIAIRES (ROBUSTE) ---
+        // --- IMPORT STAGIAIRES (LOGIQUE UX) ---
         document.getElementById('importStagiaires').addEventListener('change', (e) => {
             Array.from(e.target.files).forEach(f => {
                 const reader = new FileReader();
                 reader.onload = async () => {
-                    const rows = parseCSV(reader.result, ',');
-                    let startIdx = rows.findIndex(r => r.includes("Nom Client"));
-                    if(startIdx === -1) { alert("Format stagiaire non reconnu"); return; }
+                    const lines = reader.result.split('\n');
+                    let count = 0;
+                    
+                    // Lecture Entête
+                    const l1 = getCols(lines[0]); // Ligne 1
+                    const l2 = getCols(lines[1]); // Ligne 2
+                    const l3 = getCols(lines[2]); // Ligne 3
+                    
+                    if(l1[1]) document.getElementById('nomStage').innerText = l1[1];
+                    if(l1[5]) document.getElementById('valVehicule').innerText = l1[5];
+                    const moniteurs = [l2[5], l3[5]].filter(m => m).join(' & ');
+                    document.getElementById('valMoniteurs').innerText = moniteurs || "-";
 
-                    for (let i = startIdx + 1; i < rows.length; i++) {
-                        const c = rows[i];
-                        if (c[4]) {
+                    // Lecture Stagiaires
+                    for (let i = 0; i < lines.length; i++) {
+                        const c = getCols(lines[i]);
+                        const nom = c[4]; // Colonne E
+                        if (nom && nom !== "Nom Client" && i > 5) {
                             await addDoc(collection(db, "stagiaires"), {
-                                nom: c[4], dob: c[6], solde: c[3],
-                                poids: parseFloat(c[7]) || 0,
-                                taille: parseFloat(c[8]) || 0,
-                                obs: c[9] || "", voile: "", sellette: ""
+                                nom: nom,
+                                solde: c[3] || "0", // Colonne D
+                                poids: parseFloat(c[7]) || 0, // Colonne H
+                                taille: parseFloat(c[8]) || 0, // Colonne I
+                                voile: "", sellette: ""
                             });
+                            count++;
                         }
                     }
+                    document.getElementById('txtStage').innerText = "✅ " + count + " STAGIAIRES CHARGÉS";
                 };
                 reader.readAsText(f);
             });
@@ -139,26 +162,21 @@
         document.getElementById('btnVider').onclick = async () => {
             const snap = await getDocs(collection(db, "stagiaires"));
             for (const d of snap.docs) await deleteDoc(d.ref);
+            document.getElementById('txtStage').innerText = "2. Charger les Stages";
         };
 
         document.getElementById('btnDispatch').onclick = async () => {
             const [stags, stock] = await Promise.all([getDocs(collection(db, "stagiaires")), getDocs(collection(db, "parc_ailes"))]);
-            if (stock.empty) { alert("Chargez le parc d'abord !"); return; }
-            
             let ailes = stock.docs.map(d => d.data());
             let prises = [];
-
             for (const d of stags.docs) {
                 const s = d.data();
                 const ptv = (s.poids || 0) + 15;
                 const match = ailes.find(a => ptv >= a.min && ptv <= a.max && !prises.includes(a.num));
-                
                 let v = "STOCK";
                 if(match) { v = match.num; prises.push(v); }
-                
                 const h = s.taille < 3 ? s.taille * 100 : s.taille;
                 let sel = h < 165 ? "S" : (h > 185 ? "L" : "M");
-                
                 await updateDoc(d.ref, { voile: v, sellette: sel });
             }
         };
@@ -166,26 +184,27 @@
         document.getElementById('btnPdf').onclick = () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFontSize(18); doc.text("FEUILLE DE ROUTE MATÉRIEL", 14, 15);
-            doc.autoTable({ html: '#tableDispatch', startY: 22, theme: 'grid', headStyles: {fillColor:[30, 41, 59]}, styles:{fontSize:8} });
+            doc.text(document.getElementById('nomStage').innerText, 14, 15);
+            doc.autoTable({ html: '#tableDispatch', startY: 22, theme: 'grid', styles: {fontSize: 8} });
             doc.save('dispatch.pdf');
         };
 
         // --- RENDER ---
         onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
             const list = document.getElementById("liste-stagiaires");
-            list.innerHTML = snap.empty ? '<tr><td colspan="6" class="p-20 text-center text-slate-300 font-medium">Glissez un fichier de stage pour commencer</td></tr>' : "";
+            list.innerHTML = "";
             snap.forEach(d => {
                 const s = d.data();
                 const t = s.taille < 3 ? Math.round(s.taille*100) : s.taille;
                 list.innerHTML += `
-                <tr class="hover:bg-slate-50/80 transition-colors uppercase text-[11px] font-bold">
-                    <td class="p-4 border-r border-slate-50"><div class="text-slate-900 font-black">${s.nom}</div><div class="text-[9px] text-slate-400 font-normal normal-case italic">${s.dob}</div></td>
-                    <td class="p-4 border-r border-slate-50 text-center text-slate-500">${s.poids}kg / ${t}cm</td>
-                    <td class="p-4 border-r border-slate-50 text-center text-orange-600 bg-orange-50/30">${s.solde}€</td>
-                    <td class="p-4 border-r border-slate-50 text-center font-black text-blue-600 bg-blue-50/50 text-sm">${s.voile || '-'}</td>
-                    <td class="p-4 border-r border-slate-50 text-center text-slate-700 bg-slate-50/50">${s.sellette || '-'}</td>
-                    <td class="p-4 text-[9px] normal-case font-normal text-slate-400 leading-tight w-1/4">${s.obs}</td>
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4 border-r">${s.nom}</td>
+                    <td class="p-4 border-r text-center text-red-600">${s.solde}€</td>
+                    <td class="p-4 border-r text-center">${s.poids}kg</td>
+                    <td class="p-4 border-r text-center">${t}cm</td>
+                    <td class="p-4 border-r text-center font-black text-blue-700 bg-blue-50/50 text-sm">${s.voile || '-'}</td>
+                    <td class="p-4 border-r text-center text-slate-700 bg-slate-50">${s.sellette || '-'}</td>
+                    <td class="p-4 border-r"></td><td class="p-4"></td>
                 </tr>`;
             });
         });
