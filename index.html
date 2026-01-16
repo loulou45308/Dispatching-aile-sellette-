@@ -9,40 +9,39 @@
 </head>
 <body class="bg-slate-100 p-4 font-sans text-slate-900">
 
-    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden p-6">
+    <div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden p-6">
         <h1 class="text-2xl font-black text-center mb-6 uppercase text-blue-800">Dispatching & Logistique École</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">1. Charger les stagiaires (CSV)</label>
-                <input type="file" id="importStagiaires" class="text-xs w-full mb-2" multiple>
-                <p class="text-[10px] text-slate-400 italic">Format: Virgule (Excel export)</p>
+                <input type="file" id="importStagiaires" class="text-xs w-full" multiple>
             </div>
 
             <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <label class="block text-[10px] font-black uppercase text-blue-400 mb-2">2. Charger le parc école (CSV)</label>
                 <input type="file" id="importParc" class="text-xs w-full">
-                <p class="text-[10px] text-blue-400 italic">Fichier: aile sellette.csv</p>
             </div>
             
             <div class="flex flex-col gap-2">
-                <button onclick="window.viderBase()" class="bg-red-100 text-red-600 font-bold py-2 rounded-xl text-xs uppercase hover:bg-red-200">Vider stagiaires</button>
-                <button onclick="window.lancerDispatch()" class="bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 uppercase text-sm">Lancer le Dispatching</button>
+                <button id="btnVider" class="bg-red-100 text-red-600 font-bold py-2 rounded-xl text-xs uppercase hover:bg-red-200">Vider stagiaires</button>
+                <button id="btnDispatch" class="bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 uppercase text-sm">Lancer le Dispatching</button>
                 <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 rounded-xl text-xs uppercase hover:bg-black">Exporter PDF terrain</button>
             </div>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-200">
-            <table id="tableDispatch" class="w-full text-left border-collapse text-[11px]">
+            <table id="tableDispatch" class="w-full text-left border-collapse text-[10px]">
                 <thead>
                     <tr class="bg-slate-800 text-white uppercase">
                         <th class="p-2 border">Nom Client</th>
                         <th class="p-2 border">Né(e) le</th>
                         <th class="p-2 border">Poids</th>
                         <th class="p-2 border">Taille</th>
-                        <th class="p-2 border text-red-400">Solde Dû</th>
-                        <th class="p-2 border bg-blue-700 text-center">Voile (n°)</th>
-                        <th class="p-2 border bg-slate-700 text-center">Sellette</th>
+                        <th class="p-2 border text-red-400">Solde</th>
+                        <th class="p-2 border bg-blue-700 text-center">Voile</th>
+                        <th class="p-2 border bg-slate-700 text-center">Selt.</th>
+                        <th class="p-2 border">Observations</th>
                         <th class="p-2 border text-slate-400">Casque</th>
                         <th class="p-2 border text-slate-400">Radio</th>
                     </tr>
@@ -66,25 +65,22 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- IMPORT PARC ECOLE ---
+        // --- IMPORT PARC ---
         document.getElementById('importParc').addEventListener('change', (e) => {
             const reader = new FileReader();
             reader.onload = async () => {
                 const lignes = reader.result.split('\n');
                 const batch = writeBatch(db);
-                // On vide d'abord le vieux parc
                 const oldParc = await getDocs(collection(db, "parc_ailes"));
                 oldParc.forEach(d => batch.delete(d.ref));
 
                 lignes.forEach((ligne) => {
                     const cols = ligne.split(';');
                     if (cols[1] && cols[2] && cols[1] !== "2") {
-                        // Gère format "60-80" ou "90_110"
                         const ptvStr = cols[2].replace('_', '-');
                         const ptvRange = ptvStr.split('-');
                         if(ptvRange.length === 2) {
-                            const ref = doc(collection(db, "parc_ailes"));
-                            batch.set(ref, { 
+                            batch.set(doc(collection(db, "parc_ailes")), { 
                                 num: cols[1].trim(), 
                                 ptvMin: parseInt(ptvRange[0]), 
                                 ptvMax: parseInt(ptvRange[1]) 
@@ -93,7 +89,7 @@
                     }
                 });
                 await batch.commit();
-                alert("Parc école chargé !");
+                alert("Parc chargé !");
             };
             reader.readAsText(e.target.files[0]);
         });
@@ -109,13 +105,9 @@
                         const cols = lignes[i].split(',');
                         if (cols[4] && cols[4].trim() && cols[4] !== "Nom Client") {
                             await addDoc(collection(db, "stagiaires"), {
-                                nom: cols[4].trim(), 
-                                dob: cols[6] || "", 
-                                solde: cols[3] || "0",
-                                poids: parseFloat(cols[7]) || 0, 
-                                taille: parseFloat(cols[8]) || 0,
-                                voile: "", 
-                                sellette: ""
+                                nom: cols[4].trim(), dob: cols[6] || "", solde: cols[3] || "0",
+                                poids: parseFloat(cols[7]) || 0, taille: parseFloat(cols[8]) || 0,
+                                obs: cols[9] || "", voile: "", sellette: ""
                             });
                         }
                     }
@@ -124,44 +116,65 @@
             }
         });
 
-        window.viderBase = async () => {
-            if(!confirm("Supprimer tous les stagiaires ?")) return;
+        // --- VIDER ---
+        document.getElementById('btnVider').addEventListener('click', async () => {
+            if(!confirm("Supprimer tout ?")) return;
             const snap = await getDocs(collection(db, "stagiaires"));
             const batch = writeBatch(db);
             snap.forEach(d => batch.delete(d.ref));
             await batch.commit();
-        };
+        });
 
-        window.lancerDispatch = async () => {
+        // --- DISPATCH ---
+        document.getElementById('btnDispatch').addEventListener('click', async () => {
             const stagiairesSnap = await getDocs(collection(db, "stagiaires"));
             const parcSnap = await getDocs(collection(db, "parc_ailes"));
             let stockAiles = parcSnap.docs.map(d => d.data());
             let ailesPrises = [];
             const batch = writeBatch(db);
 
-            // Tri des stagiaires par poids (les plus légers d'abord pour optimiser le stock)
-            const docs = stagiairesSnap.docs;
-            
-            docs.forEach(d => {
+            stagiairesSnap.forEach(d => {
                 const s = d.data();
                 const ptv = (Number(s.poids) || 0) + 15;
                 let vAttr = "STOCK";
-                
-                // Recherche d'une voile libre dans la plage
                 const match = stockAiles.find(a => ptv >= a.ptvMin && ptv <= a.ptvMax && !ailesPrises.includes(a.num));
-                if (match) { 
-                    vAttr = match.num; 
-                    ailesPrises.push(match.num); 
-                }
-
-                // Logique Sellette
+                if (match) { vAttr = match.num; ailesPrises.push(match.num); }
                 const t = s.taille < 3 ? s.taille * 100 : s.taille;
-                let selt = "M";
-                if(t < 165) selt = "S"; else if(t > 185) selt = "L"; else if(t > 195) selt = "XL";
-
+                let selt = t < 165 ? "S" : (t > 185 ? "L" : "M");
                 batch.update(d.ref, { voile: vAttr, sellette: selt });
             });
             await batch.commit();
-        };
+            alert("Dispatch terminé !");
+        });
 
-        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")),
+        // --- AFFICHAGE ---
+        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
+            const list = document.getElementById("liste-stagiaires");
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const s = d.data();
+                list.innerHTML += `<tr class="border-b bg-white uppercase">
+                    <td class="p-2 font-bold">${s.nom}</td>
+                    <td class="p-2 text-gray-500">${s.dob}</td>
+                    <td class="p-2">${s.poids}kg</td>
+                    <td class="p-2">${s.taille < 3 ? Math.round(s.taille*100) : s.taille}cm</td>
+                    <td class="p-2 text-red-600 font-bold">${s.solde}€</td>
+                    <td class="p-2 text-center font-black text-blue-600">${s.voile || '-'}</td>
+                    <td class="p-2 text-center font-bold">${s.sellette || '-'}</td>
+                    <td class="p-2 text-[8px] normal-case text-gray-500">${s.obs}</td>
+                    <td class="p-2 border-l"></td><td class="p-2 border-l"></td>
+                </tr>`;
+            });
+        });
+
+        // --- PDF ---
+        document.getElementById('btnPdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.text("LISTE DISPATCHING TERRAIN", 14, 15);
+            doc.autoTable({ html: '#tableDispatch', startY: 20, theme: 'grid', styles: {fontSize: 7} });
+            doc.save('dispatch_terrain.pdf');
+        });
+    </script>
+</body>
+</html>
