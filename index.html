@@ -1,17 +1,126 @@
-// --- LOGIQUE DE LECTURE V20 (Adaptée à ton fichier) ---
-lines.forEach(row => {
-    const colA = row[0] ? row[0].trim() : "";
-    const colB = row[1] ? row[1].trim() : "";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dispatch Final - Version Stable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-6 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-slate-900 text-white p-4 rounded-xl shadow-lg">
+                <p class="text-[10px] uppercase opacity-50 font-bold">Voiles</p>
+                <p id="resVoiles" class="text-2xl font-black text-blue-400">0</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-[10px] uppercase text-slate-400 font-bold">Sellettes (S/M/L)</p>
+                <p id="resSelt" class="text-xl font-black">0 / 0 / 0</p>
+            </div>
+            <div class="bg-blue-600 text-white p-4 rounded-xl shadow-lg col-span-2">
+                <p class="text-[10px] uppercase opacity-70 font-bold">Effectif Stage</p>
+                <p id="resStags" class="text-2xl font-black">0 Stagiaires</p>
+            </div>
+        </div>
 
-    // Si c'est une sellette
-    if(colA === "S")  countS = colB;
-    if(colA === "M")  countM = colB;
-    if(colA === "L")  countL = colB;
-    if(colA === "XL") countXL = colB;
+        <div class="space-y-4 mb-8">
+            <div class="bg-white p-4 rounded-xl border-2 border-dashed border-blue-200">
+                <span class="text-xs font-bold text-blue-600">1. Charger "parc facile.csv" :</span>
+                <input type="file" id="importParc" class="ml-4 text-xs">
+            </div>
+            <div class="bg-white p-4 rounded-xl border-2 border-dashed border-slate-300">
+                <span class="text-xs font-bold text-slate-600">2. Charger "Stage init 1.csv" :</span>
+                <input type="file" id="importStage" class="ml-4 text-xs">
+            </div>
+        </div>
 
-    // Si c'est une voile (Un nombre en col A et un tiret en col B)
-    if(!isNaN(colA) && colA !== "" && colB.includes('-')) {
-        vCount++;
-        // Sauvegarde en base...
-    }
-});
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b flex justify-between">
+                <button id="btnDispatch" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase">Calculer Attribution</button>
+            </div>
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-900 text-white/50 text-[10px] uppercase font-bold">
+                    <tr><th class="p-4">Stagiaire</th><th class="p-4 text-center">Poids</th><th class="p-4 text-center">Voile Attr.</th><th class="p-4 text-center">Selt. Attr.</th></tr>
+                </thead>
+                <tbody id="liste" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, writeBatch, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBAiOJog5nwXDn8k6YTWLJA-0CxNaQUXhk", authDomain: "dispatching-voile-sellette.firebaseapp.com", projectId: "dispatching-voile-sellette", appId: "1:933259154090:web:ab39a667fb9f35c293b6d3" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // LECTURE PARC
+        document.getElementById('importParc').addEventListener('change', async (e) => {
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const lines = reader.result.split(/\r?\n/).map(l => l.split(';').map(s => s.trim()));
+                const batch = writeBatch(db);
+                let vCount = 0; let s={S:0, M:0, L:0, XL:0};
+
+                const old = await getDocs(collection(db, "parc_ailes"));
+                old.forEach(d => batch.delete(d.ref));
+
+                lines.forEach(row => {
+                    const colA = row[0]; const colB = row[1] || "";
+                    if(["S","M","L","XL"].includes(colA)) s[colA] = colB;
+                    if(!isNaN(colA) && colA !== "" && colB.includes('-')) {
+                        vCount++;
+                        const p = colB.split('-');
+                        batch.set(doc(collection(db, "parc_ailes")), { num: colA, min: parseInt(p[0]), max: parseInt(p[1]) });
+                    }
+                });
+                await batch.commit();
+                document.getElementById('resVoiles').innerText = vCount;
+                document.getElementById('resSelt').innerText = `${s.S} / ${s.M} / ${parseInt(s.L)+parseInt(s.XL)}`;
+            };
+            reader.readAsText(e.target.files[0]);
+        });
+
+        // LECTURE STAGE
+        document.getElementById('importStage').addEventListener('change', (e) => {
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const lines = reader.result.split(/\r?\n/).map(l => l.split(';').map(s => s.trim()));
+                for (let i = 7; i < lines.length; i++) {
+                    const c = lines[i];
+                    if (c[4] && c[4].length > 1 && c[4].toUpperCase() !== "NOM CLIENT") {
+                        await addDoc(collection(db, "stagiaires"), { nom: c[4], poids: parseFloat(c[7]) || 0, taille: parseFloat(c[8]?.replace(',','.')) || 0, voile: "", sellette: "" });
+                    }
+                }
+            };
+            reader.readAsText(e.target.files[0]);
+        });
+
+        // CALCUL
+        document.getElementById('btnDispatch').onclick = async () => {
+            const [stags, stock] = await Promise.all([getDocs(collection(db, "stagiaires")), getDocs(collection(db, "parc_ailes"))]);
+            let ailes = stock.docs.map(d => d.data());
+            let prises = [];
+            for (const d of stags.docs) {
+                const s = d.data();
+                const ptv = s.poids + 15;
+                const match = ailes.find(a => ptv >= a.min && ptv <= a.max && !prises.includes(a.num));
+                let v = match ? match.num : "STK";
+                if(match) prises.push(v);
+                let sel = (s.taille*100 < 165 || s.taille < 1.65) ? "S" : (s.taille > 1.85 || s.taille*100 > 185 ? "L" : "M");
+                await updateDoc(d.ref, { voile: v, sellette: sel });
+            }
+        };
+
+        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
+            document.getElementById('resStags').innerText = `${snap.size} Stagiaires`;
+            const list = document.getElementById("liste");
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const s = d.data();
+                list.innerHTML += `<tr class="border-b"><td class="p-4 font-bold text-slate-700">${s.nom}</td><td class="p-4 text-center">${s.poids}kg</td><td class="p-4 text-center font-black text-blue-600">${s.voile || '-'}</td><td class="p-4 text-center">${s.sellette || '-'}</td></tr>`;
+            });
+        });
+    </script>
+</body>
+</html>
