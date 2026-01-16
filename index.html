@@ -2,56 +2,69 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch PRO v3</title>
+    <title>Dispatch PRO - Interface Moniteur</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body class="bg-slate-100 p-4 font-sans text-slate-900">
+<body class="bg-slate-50 p-4 md:p-8 font-sans">
 
-    <div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden p-6">
-        <h1 class="text-2xl font-black text-center mb-6 uppercase text-blue-800">Dispatching Logistique</h1>
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">DISPATCH MATÉRIEL</h1>
+                <p class="text-slate-500 font-medium">Gestion des ailes et sellettes en temps réel</p>
+            </div>
+            <div id="badgeStock" class="hidden bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-bold border border-green-200">
+                ✓ PARC ÉCOLE CHARGÉ
+            </div>
+        </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div id="zoneParc" class="p-4 bg-blue-50 rounded-xl border-2 border-blue-200 transition-colors">
-                <label class="block text-[10px] font-black uppercase text-blue-600 mb-2">1. Charger le parc école (CSV)</label>
-                <input type="file" id="importParc" class="text-xs w-full cursor-pointer">
-                <p id="statusParc" class="text-[9px] mt-2 text-blue-400">En attente du fichier "aile sellette.csv"</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="relative group">
+                <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">ÉTAPE 1</div>
+                <div class="border-2 border-dashed border-blue-200 bg-blue-50/50 p-8 rounded-2xl hover:border-blue-400 transition-all text-center">
+                    <input type="file" id="importParc" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <p class="text-blue-700 font-bold text-sm">Charger le Parc École</p>
+                    <p class="text-blue-400 text-[10px] mt-1">Glissez "aile sellette.csv" ici</p>
+                </div>
             </div>
 
-            <div id="zoneStage" class="p-4 bg-slate-50 rounded-xl border-2 border-slate-200 transition-colors">
-                <label class="block text-[10px] font-black uppercase text-slate-500 mb-2">2. Charger les stagiaires (CSV)</label>
-                <input type="file" id="importStagiaires" class="text-xs w-full cursor-pointer" multiple>
-                <p id="statusStage" class="text-[9px] mt-2 text-slate-400">Sélectionnez vos fichiers de stage</p>
-            </div>
-            
-            <div class="flex flex-col gap-2">
-                <button id="btnDispatch" class="bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 uppercase text-sm">Lancer le Dispatching</button>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="btnVider" class="bg-red-500 text-white font-bold py-2 rounded-xl text-[10px] uppercase">Vider Tout</button>
-                    <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 rounded-xl text-[10px] uppercase">Export PDF</button>
+            <div class="relative group">
+                <div class="absolute -top-3 left-4 bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">ÉTAPE 2</div>
+                <div class="border-2 border-dashed border-slate-200 bg-white p-8 rounded-2xl hover:border-slate-400 transition-all text-center">
+                    <input type="file" id="importStagiaires" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" multiple>
+                    <p class="text-slate-700 font-bold text-sm">Charger les Stagiaires</p>
+                    <p class="text-slate-400 text-[10px] mt-1">Sélectionnez vos fichiers de stage</p>
                 </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200">
-            <table id="tableDispatch" class="w-full text-left border-collapse text-[11px]">
-                <thead>
-                    <tr class="bg-slate-800 text-white uppercase">
-                        <th class="p-3 border">Nom Client</th>
-                        <th class="p-3 border">Date Naiss.</th>
-                        <th class="p-3 border text-center">Poids</th>
-                        <th class="p-3 border text-center">Taille</th>
-                        <th class="p-3 border text-orange-400 text-center">Solde</th>
-                        <th class="p-3 border bg-blue-700 text-center text-white">Voile (n°)</th>
-                        <th class="p-3 border bg-slate-700 text-center text-white">Selt.</th>
-                        <th class="p-3 border">Observations</th>
-                    </tr>
-                </thead>
-                <tbody id="liste-stagiaires" class="bg-white uppercase font-bold">
-                    <tr><td colspan="8" class="p-10 text-center text-slate-300 italic">Aucun stagiaire chargé...</td></tr>
-                </tbody>
-            </table>
+        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
+            <div class="p-6 border-b border-slate-50 flex flex-wrap gap-4 justify-between items-center bg-slate-50/50">
+                <div class="flex gap-2">
+                    <button id="btnDispatch" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition-all active:scale-95">Calculer le Dispatching</button>
+                    <button id="btnPdf" class="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all">Imprimer PDF</button>
+                </div>
+                <button id="btnVider" class="text-rose-500 hover:text-rose-700 font-bold text-xs uppercase tracking-widest">Réinitialiser la liste</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="tableDispatch" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                            <th class="p-4 font-black">Stagiaire</th>
+                            <th class="p-4 font-black text-center">Poids / Taille</th>
+                            <th class="p-4 font-black text-center text-orange-500">Solde</th>
+                            <th class="p-4 font-black text-center bg-blue-50/50 text-blue-600">Voile</th>
+                            <th class="p-4 font-black text-center">Sellette</th>
+                            <th class="p-4 font-black">Observations</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liste-stagiaires" class="divide-y divide-slate-50">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -69,135 +82,110 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- INTELLIGENT CSV PARSER ---
+        const parseCSV = (text, delimiter) => {
+            return text.split('\n').map(row => row.split(delimiter).map(cell => cell.trim().replace(/^"|"$/g, '')));
+        };
+
         // --- IMPORT PARC ---
-        document.getElementById('importParc').addEventListener('change', function(e) {
+        document.getElementById('importParc').addEventListener('change', async (e) => {
             const reader = new FileReader();
             reader.onload = async () => {
-                try {
-                    const lignes = reader.result.split('\n');
-                    const oldParc = await getDocs(collection(db, "parc_ailes"));
-                    for (const d of oldParc.docs) { await deleteDoc(d.ref); }
+                const rows = parseCSV(reader.result, ';');
+                const batch = writeBatch(db);
+                const old = await getDocs(collection(db, "parc_ailes"));
+                old.forEach(d => batch.delete(d.ref));
 
-                    for (const ligne of lignes) {
-                        const cols = ligne.split(';');
-                        if (cols[1] && cols[2] && !isNaN(parseInt(cols[1]))) {
-                            const ptvStr = cols[2].replace('_', '-');
-                            const ptvRange = ptvStr.split('-');
-                            if(ptvRange.length === 2) {
-                                await addDoc(collection(db, "parc_ailes"), { 
-                                    num: cols[1].trim(), 
-                                    ptvMin: parseInt(ptvRange[0]), 
-                                    ptvMax: parseInt(ptvRange[1]) 
-                                });
-                            }
+                rows.forEach(cols => {
+                    if (cols[1] && !isNaN(cols[1]) && cols[2]) {
+                        const ptv = cols[2].replace('_', '-').split('-');
+                        if(ptv.length === 2) {
+                            batch.set(doc(collection(db, "parc_ailes")), { num: cols[1], min: parseInt(ptv[0]), max: parseInt(ptv[1]) });
                         }
                     }
-                    document.getElementById('zoneParc').classList.replace('bg-blue-50', 'bg-green-100');
-                    document.getElementById('statusParc').innerText = "✅ PARC CHARGÉ";
-                } catch (err) { alert("Erreur Parc: " + err); }
+                });
+                await batch.commit();
+                document.getElementById('badgeStock').classList.remove('hidden');
             };
             reader.readAsText(e.target.files[0]);
         });
 
-        // --- IMPORT STAGIAIRES ---
-        document.getElementById('importStagiaires').addEventListener('change', function(e) {
-            const files = e.target.files;
-            for (let f of files) {
+        // --- IMPORT STAGIAIRES (ROBUSTE) ---
+        document.getElementById('importStagiaires').addEventListener('change', (e) => {
+            Array.from(e.target.files).forEach(f => {
                 const reader = new FileReader();
                 reader.onload = async () => {
-                    try {
-                        const lignes = reader.result.split('\n');
-                        let count = 0;
-                        for (let i = 0; i < lignes.length; i++) {
-                            const cols = lignes[i].split(',');
-                            // Recherche de la colonne Nom (Marc, Nataly...)
-                            const nom = cols[4] ? cols[4].trim().replace(/"/g, '') : "";
-                            
-                            // On importe si c'est un nom et pas l'entête
-                            if (nom && nom !== "Nom Client" && i > 5) {
-                                await addDoc(collection(db, "stagiaires"), {
-                                    nom: nom,
-                                    dob: cols[6] || "",
-                                    solde: cols[3] || "0",
-                                    poids: parseFloat(cols[7]) || 0,
-                                    taille: parseFloat(cols[8]) || 0,
-                                    obs: cols[9] || "",
-                                    voile: "", 
-                                    sellette: ""
-                                });
-                                count++;
-                            }
+                    const rows = parseCSV(reader.result, ',');
+                    let startIdx = rows.findIndex(r => r.includes("Nom Client"));
+                    if(startIdx === -1) { alert("Format stagiaire non reconnu"); return; }
+
+                    for (let i = startIdx + 1; i < rows.length; i++) {
+                        const c = rows[i];
+                        if (c[4]) {
+                            await addDoc(collection(db, "stagiaires"), {
+                                nom: c[4], dob: c[6], solde: c[3],
+                                poids: parseFloat(c[7]) || 0,
+                                taille: parseFloat(c[8]) || 0,
+                                obs: c[9] || "", voile: "", sellette: ""
+                            });
                         }
-                        document.getElementById('zoneStage').classList.replace('bg-slate-50', 'bg-green-100');
-                        document.getElementById('statusStage').innerText = "✅ " + count + " STAGIAIRES CHARGÉS";
-                    } catch (err) { alert("Erreur Stage: " + err); }
+                    }
                 };
                 reader.readAsText(f);
-            }
+            });
         });
 
         // --- ACTIONS ---
         document.getElementById('btnVider').onclick = async () => {
-            if(!confirm("Tout vider ?")) return;
             const snap = await getDocs(collection(db, "stagiaires"));
-            for (const d of snap.docs) { await deleteDoc(d.ref); }
-            document.getElementById('zoneStage').classList.replace('bg-green-100', 'bg-slate-50');
-            document.getElementById('statusStage').innerText = "Sélectionnez vos fichiers de stage";
+            for (const d of snap.docs) await deleteDoc(d.ref);
         };
 
         document.getElementById('btnDispatch').onclick = async () => {
-            const stagiairesSnap = await getDocs(collection(db, "stagiaires"));
-            const parcSnap = await getDocs(collection(db, "parc_ailes"));
-            if (parcSnap.empty) { alert("⚠️ Chargez d'abord le Parc (1)"); return; }
+            const [stags, stock] = await Promise.all([getDocs(collection(db, "stagiaires")), getDocs(collection(db, "parc_ailes"))]);
+            if (stock.empty) { alert("Chargez le parc d'abord !"); return; }
+            
+            let ailes = stock.docs.map(d => d.data());
+            let prises = [];
 
-            let stockAiles = parcSnap.docs.map(d => d.data());
-            let ailesPrises = [];
-
-            for (const d of stagiairesSnap.docs) {
+            for (const d of stags.docs) {
                 const s = d.data();
-                const ptv = (Number(s.poids) || 0) + 15;
-                let vAttr = "STOCK";
+                const ptv = (s.poids || 0) + 15;
+                const match = ailes.find(a => ptv >= a.min && ptv <= a.max && !prises.includes(a.num));
                 
-                const match = stockAiles.find(a => ptv >= a.ptvMin && ptv <= a.ptvMax && !ailesPrises.includes(a.num));
-                if (match) { vAttr = match.num; ailesPrises.push(match.num); }
-
-                const t = s.taille < 3 ? s.taille * 100 : s.taille;
-                let selt = t < 165 ? "S" : (t > 185 ? "L" : "M");
-                if (t > 195) selt = "XL";
-
-                await updateDoc(d.ref, { voile: vAttr, sellette: selt });
+                let v = "STOCK";
+                if(match) { v = match.num; prises.push(v); }
+                
+                const h = s.taille < 3 ? s.taille * 100 : s.taille;
+                let sel = h < 165 ? "S" : (h > 185 ? "L" : "M");
+                
+                await updateDoc(d.ref, { voile: v, sellette: sel });
             }
-            alert("Dispatch terminé !");
         };
 
         document.getElementById('btnPdf').onclick = () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFontSize(14);
-            doc.text("LISTE DISPATCHING MATÉRIEL", 14, 15);
-            doc.autoTable({ html: '#tableDispatch', startY: 20, theme: 'grid', styles: {fontSize: 7} });
+            doc.setFontSize(18); doc.text("FEUILLE DE ROUTE MATÉRIEL", 14, 15);
+            doc.autoTable({ html: '#tableDispatch', startY: 22, theme: 'grid', headStyles: {fillColor:[30, 41, 59]}, styles:{fontSize:8} });
             doc.save('dispatch.pdf');
         };
 
-        // --- SYNC AFFICHAGE ---
+        // --- RENDER ---
         onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
             const list = document.getElementById("liste-stagiaires");
-            if (snap.empty) {
-                list.innerHTML = '<tr><td colspan="8" class="p-10 text-center text-slate-300 italic">Aucun stagiaire chargé...</td></tr>';
-                return;
-            }
-            list.innerHTML = "";
+            list.innerHTML = snap.empty ? '<tr><td colspan="6" class="p-20 text-center text-slate-300 font-medium">Glissez un fichier de stage pour commencer</td></tr>' : "";
             snap.forEach(d => {
                 const s = d.data();
-                list.innerHTML += `<tr class="border-b hover:bg-slate-50">
-                    <td class="p-3 border-r">${s.nom}</td>
-                    <td class="p-3 border-r text-slate-400 text-[9px]">${s.dob}</td>
-                    <td class="p-3 border-r text-center">${s.poids}kg</td>
-                    <td class="p-3 border-r text-center">${s.taille < 3 ? Math.round(s.taille*100) : s.taille}cm</td>
-                    <td class="p-3 border-r text-orange-600 text-center">${s.solde}€</td>
-                    <td class="p-3 border-r text-center font-black text-blue-700 bg-blue-50">${s.voile || '---'}</td>
-                    <td class="p-3 border-r text-center text-slate-600">${s.sellette || '---'}</td>
-                    <td class="p-3 text-[9px] normal-case italic text-slate-400 font-normal">${s.obs}</td>
+                const t = s.taille < 3 ? Math.round(s.taille*100) : s.taille;
+                list.innerHTML += `
+                <tr class="hover:bg-slate-50/80 transition-colors uppercase text-[11px] font-bold">
+                    <td class="p-4 border-r border-slate-50"><div class="text-slate-900 font-black">${s.nom}</div><div class="text-[9px] text-slate-400 font-normal normal-case italic">${s.dob}</div></td>
+                    <td class="p-4 border-r border-slate-50 text-center text-slate-500">${s.poids}kg / ${t}cm</td>
+                    <td class="p-4 border-r border-slate-50 text-center text-orange-600 bg-orange-50/30">${s.solde}€</td>
+                    <td class="p-4 border-r border-slate-50 text-center font-black text-blue-600 bg-blue-50/50 text-sm">${s.voile || '-'}</td>
+                    <td class="p-4 border-r border-slate-50 text-center text-slate-700 bg-slate-50/50">${s.sellette || '-'}</td>
+                    <td class="p-4 text-[9px] normal-case font-normal text-slate-400 leading-tight w-1/4">${s.obs}</td>
                 </tr>`;
             });
         });
