@@ -2,81 +2,72 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch PRO v12 - Dashboard Permanent</title>
+    <title>Dispatch PRO v13 - Correction Structure</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-8 font-sans text-slate-900">
 
     <div class="max-w-7xl mx-auto">
         
-        <header class="flex flex-wrap justify-between items-center mb-8 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
-            <div>
-                <h1 id="nomStage" class="text-2xl font-black text-slate-800 uppercase tracking-tighter">CONTRÔLE FLOTTE & STAGES</h1>
-                <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Version Lead Dev v12.0</p>
-            </div>
-            <button id="btnVider" class="bg-rose-50 text-rose-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-rose-100 transition-all">Réinitialiser Tout</button>
-        </header>
-
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             
             <div class="lg:col-span-2 bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-blue-600">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-blue-400">État du Parc École</h2>
-                    <span id="vCheckParc" class="hidden text-[10px] bg-green-500 text-white px-2 py-1 rounded">✓ FICHIER LU</span>
-                </div>
+                <h2 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-6">État du Parc École (Fichier Aile Sellette)</h2>
                 <div class="grid grid-cols-5 gap-3">
                     <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase">Voiles Totales</span>
+                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase">Voiles</span>
                         <span id="resVoiles" class="text-3xl font-black text-blue-400">0</span>
                     </div>
-                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase">S</span>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center border-blue-500/30">
+                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase text-blue-400">S</span>
                         <span id="resS" class="text-2xl font-black">0</span>
                     </div>
-                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase">M</span>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center border-blue-500/30">
+                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase text-blue-400">M</span>
                         <span id="resM" class="text-2xl font-black">0</span>
                     </div>
-                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase">L</span>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center border-blue-500/30">
+                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase text-blue-400">L</span>
                         <span id="resL" class="text-2xl font-black">0</span>
                     </div>
-                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
-                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase">XL</span>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10 text-center border-blue-500/30">
+                        <span class="block text-[9px] opacity-50 mb-1 font-bold uppercase text-blue-400">XL</span>
                         <span id="resXL" class="text-2xl font-black">0</span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl border-b-8 border-blue-800">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-blue-100">Effectif Stage</h2>
-                    <span id="vCheckStage" class="hidden text-[10px] bg-white text-blue-600 px-2 py-1 rounded">✓ FICHIER LU</span>
-                </div>
-                <div class="bg-white/20 p-6 rounded-3xl border border-white/20 text-center">
-                    <span id="resStags" class="text-6xl font-black">0</span>
-                    <span class="block text-[10px] mt-2 font-black uppercase opacity-70 tracking-widest italic">Élèves inscrits</span>
+                <h2 class="text-xs font-black uppercase tracking-widest text-blue-100 mb-6">Effectif Stage (Fichier Stage)</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-white/20 p-4 rounded-2xl text-center">
+                        <span id="resStagsTotal" class="text-3xl font-black">0</span>
+                        <span class="block text-[8px] uppercase font-bold opacity-70">Dossiers</span>
+                    </div>
+                    <div class="bg-green-500 p-4 rounded-2xl text-center shadow-inner">
+                        <span id="resStagsPresents" class="text-3xl font-black">0</span>
+                        <span class="block text-[8px] uppercase font-bold">Présents</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div class="relative h-24 border-2 border-dashed border-slate-300 bg-white rounded-[1.5rem] flex items-center justify-center hover:border-blue-500 transition-all cursor-pointer">
+            <div class="relative h-20 border-2 border-dashed border-slate-300 bg-white rounded-2xl flex items-center justify-center hover:border-blue-500 transition-all cursor-pointer">
                 <input type="file" id="importParc" class="absolute inset-0 opacity-0 cursor-pointer">
-                <p class="font-black text-[10px] text-slate-500 uppercase">1. Glisser "aile sellette.csv"</p>
+                <p class="font-black text-[10px] text-slate-400 uppercase italic">1. Charger Inventaire (Ailes & Sellettes)</p>
             </div>
-            <div class="relative h-24 border-2 border-dashed border-slate-300 bg-white rounded-[1.5rem] flex items-center justify-center hover:border-blue-500 transition-all cursor-pointer">
-                <input type="file" id="importStagiaires" class="absolute inset-0 opacity-0 cursor-pointer" multiple>
-                <p class="font-black text-[10px] text-slate-500 uppercase">2. Glisser "Stage init 1.csv"</p>
+            <div class="relative h-20 border-2 border-dashed border-slate-300 bg-white rounded-2xl flex items-center justify-center hover:border-blue-500 transition-all cursor-pointer">
+                <input type="file" id="importStagiaires" class="absolute inset-0 opacity-0 cursor-pointer">
+                <p class="font-black text-[10px] text-slate-400 uppercase italic">2. Charger Stage (Participants)</p>
             </div>
         </div>
 
         <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200">
             <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
-                <button id="btnDispatch" class="bg-blue-600 hover:bg-blue-800 text-white px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-lg shadow-blue-200">Calculer le Dispatching Matériel</button>
-                <div class="text-right">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Véhicule : <span id="valVehicule" class="text-slate-800">-</span></p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Moniteurs : <span id="valMoniteurs" class="text-slate-800">-</span></p>
+                <button id="btnDispatch" class="bg-blue-600 hover:bg-blue-800 text-white px-10 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-lg">Calculer le Dispatching</button>
+                <div class="text-right text-[10px] font-bold text-slate-400 uppercase">
+                    <p>Véhicule: <span id="valVehicule" class="text-slate-800">-</span> | Moniteurs: <span id="valMoniteurs" class="text-slate-800">-</span></p>
                 </div>
             </div>
             <table class="w-full text-left">
@@ -90,8 +81,7 @@
                         <th class="p-5 text-center bg-slate-700 text-white">Sellette</th>
                     </tr>
                 </thead>
-                <tbody id="liste-stagiaires" class="divide-y divide-slate-100 text-xs font-bold uppercase tracking-tight">
-                    </tbody>
+                <tbody id="liste-stagiaires" class="divide-y divide-slate-100 text-xs font-bold uppercase tracking-tight"></tbody>
             </table>
         </div>
     </div>
@@ -104,124 +94,4 @@
             apiKey: "AIzaSyBAiOJog5nwXDn8k6YTWLJA-0CxNaQUXhk",
             authDomain: "dispatching-voile-sellette.firebaseapp.com",
             projectId: "dispatching-voile-sellette",
-            appId: "1:933259154090:web:ab39a667fb9f35c293b6d3"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // --- SCAN PARC ---
-        document.getElementById('importParc').addEventListener('change', async (e) => {
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const rows = reader.result.split('\n').map(l => l.split(';'));
-                const batch = writeBatch(db);
-                let vCount = 0; let selt = {S:0, M:0, L:0, XL:0};
-
-                const old = await getDocs(collection(db, "parc_ailes"));
-                old.forEach(d => batch.delete(d.ref));
-                
-                rows.forEach(c => {
-                    // Logic Voiles : Colonne A contient un nom
-                    if(c[0] && c[0].trim().length > 1 && c[0].toUpperCase() !== "VOILE") {
-                        vCount++;
-                        if(c[1] && c[2]) {
-                            const p = c[2].replace('_','-').split('-');
-                            if(p.length === 2) batch.set(doc(collection(db, "parc_ailes")), { num: c[1].trim(), min: parseInt(p[0]), max: parseInt(p[1]) });
-                        }
-                    }
-                    // Logic Sellettes : Colonne G
-                    if(c[6]) {
-                        const s = c[6].trim().toUpperCase();
-                        if(selt.hasOwnProperty(s)) selt[s]++;
-                    }
-                });
-
-                await batch.commit();
-                document.getElementById('resVoiles').innerText = vCount;
-                document.getElementById('resS').innerText = selt.S;
-                document.getElementById('resM').innerText = selt.M;
-                document.getElementById('resL').innerText = selt.L;
-                document.getElementById('resXL').innerText = selt.XL;
-                document.getElementById('vCheckParc').classList.remove('hidden');
-            };
-            reader.readAsText(e.target.files[0]);
-        });
-
-        // --- SCAN STAGE ---
-        document.getElementById('importStagiaires').addEventListener('change', (e) => {
-            Array.from(e.target.files).forEach(f => {
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const rows = reader.result.split('\n').map(l => l.split(';'));
-                    
-                    if(rows[0]) {
-                        document.getElementById('nomStage').innerText = rows[0][1] || "STAGE";
-                        document.getElementById('valVehicule').innerText = rows[0][5] || "-";
-                    }
-                    const m = [(rows[1]?rows[1][5]:""), (rows[2]?rows[2][5]:"")].filter(x => x && x.trim()!="").join(" / ");
-                    document.getElementById('valMoniteurs').innerText = m || "-";
-
-                    for (let i = 7; i < rows.length; i++) {
-                        const c = rows[i];
-                        // Logic Stagiaire : Colonne E (index 4)
-                        if (c && c[4] && c[4].trim().length > 1 && c[4].toUpperCase() !== "NOM CLIENT") {
-                            await addDoc(collection(db, "stagiaires"), {
-                                nom: c[4].trim(), tel: c[5] || "-",
-                                poids: parseFloat(c[7]) || 0,
-                                taille: parseFloat(c[8].replace(',','.')) || 0,
-                                voile: "", sellette: ""
-                            });
-                        }
-                    }
-                    document.getElementById('vCheckStage').classList.remove('hidden');
-                };
-                reader.readAsText(f);
-            });
-        });
-
-        // --- ACTIONS ---
-        document.getElementById('btnVider').onclick = async () => {
-            const snap = await getDocs(collection(db, "stagiaires"));
-            for (const d of snap.docs) await deleteDoc(d.ref);
-            location.reload(); 
-        };
-
-        document.getElementById('btnDispatch').onclick = async () => {
-            const [stags, stock] = await Promise.all([getDocs(collection(db, "stagiaires")), getDocs(collection(db, "parc_ailes"))]);
-            let ailes = stock.docs.map(d => d.data());
-            let prises = [];
-            for (const d of stags.docs) {
-                const s = d.data();
-                const ptv = (s.poids || 0) + 15;
-                const match = ailes.find(a => ptv >= a.min && ptv <= a.max && !prises.includes(a.num));
-                let v = match ? match.num : "STOCK";
-                if(match) prises.push(v);
-                let h = s.taille < 3 ? s.taille * 100 : s.taille;
-                let sel = h < 165 ? "S" : (h > 185 ? "L" : "M");
-                await updateDoc(d.ref, { voile: v, sellette: sel });
-            }
-        };
-
-        // --- SYNC ---
-        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
-            const list = document.getElementById("liste-stagiaires");
-            document.getElementById('resStags').innerText = snap.size;
-            list.innerHTML = "";
-            snap.forEach(d => {
-                const s = d.data();
-                let t = s.taille < 3 ? Math.round(s.taille*100) : s.taille;
-                list.innerHTML += `
-                <tr class="hover:bg-blue-50/50 transition-all border-b">
-                    <td class="p-5 text-slate-900 font-black italic">${s.nom}</td>
-                    <td class="p-5 text-slate-400 tracking-tighter">${s.tel}</td>
-                    <td class="p-5 text-center">${s.poids}kg</td>
-                    <td class="p-5 text-center">${t}cm</td>
-                    <td class="p-5 text-center font-black text-blue-700 bg-blue-50/50">${s.voile || '---'}</td>
-                    <td class="p-5 text-center text-slate-700 bg-slate-50/30">${s.sellette || '---'}</td>
-                </tr>`;
-            });
-        });
-    </script>
-</body>
-</html>
+            appId: "1:933259154090:web:ab39a667fb
