@@ -2,132 +2,176 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch PRO v17 - Format Fixe</title>
+    <title>Dispatch PRO v19 - Retour au Simple</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-8 font-sans text-slate-900">
+<body class="bg-slate-100 p-4 font-sans">
 
-    <div class="max-w-6xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div class="bg-slate-900 text-white p-8 rounded-[2rem] shadow-xl">
-                <h2 class="text-blue-400 font-black uppercase text-xs mb-4 tracking-widest">Inventaire Parc</h2>
-                <div class="grid grid-cols-5 gap-2 text-center">
-                    <div class="bg-white/10 p-3 rounded-xl"><span class="block text-[9px] uppercase opacity-50">Voiles</span><span id="resVoiles" class="text-2xl font-black">0</span></div>
-                    <div class="bg-white/5 p-3 rounded-xl"><span class="block text-[9px] uppercase opacity-50">S</span><span id="resS" class="text-xl font-black">0</span></div>
-                    <div class="bg-white/5 p-3 rounded-xl"><span class="block text-[9px] uppercase opacity-50">M</span><span id="resM" class="text-xl font-black">0</span></div>
-                    <div class="bg-white/5 p-3 rounded-xl"><span class="block text-[9px] uppercase opacity-50">L</span><span id="resL" class="text-xl font-black">0</span></div>
-                    <div class="bg-white/5 p-3 rounded-xl"><span class="block text-[9px] uppercase opacity-50">XL</span><span id="resXL" class="text-xl font-black">0</span></div>
-                </div>
+    <div class="max-w-5xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-slate-800 text-white p-4 rounded-xl text-center">
+                <span class="block text-[10px] opacity-60">VOILES</span>
+                <span id="countVoiles" class="text-2xl font-black">0</span>
             </div>
-            <div class="bg-blue-600 text-white p-8 rounded-[2rem] shadow-xl text-center">
-                <h2 class="text-blue-100 font-black uppercase text-xs mb-4 tracking-widest">Stagiaires</h2>
-                <span id="resStags" class="text-5xl font-black">0</span>
+            <div class="bg-blue-600 text-white p-4 rounded-xl text-center">
+                <span class="block text-[10px] opacity-60">STAGIAIRES</span>
+                <span id="countStags" class="text-2xl font-black">0</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl text-center shadow-sm">
+                <span class="block text-[10px] text-slate-400">S</span>
+                <span id="countS" class="text-xl font-bold">0</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl text-center shadow-sm">
+                <span class="block text-[10px] text-slate-400">M</span>
+                <span id="countM" class="text-xl font-bold">0</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl text-center shadow-sm">
+                <span class="block text-[10px] text-slate-400">L/XL</span>
+                <span id="countL" class="text-xl font-bold">0</span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <input type="file" id="importParc" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-white rounded-full shadow-sm">
-            <input type="file" id="importStagiaires" class="block w-full text-sm text-slate-500 file:mr-4 file:py-4 file:px-8 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-slate-800 file:text-white hover:file:bg-black cursor-pointer bg-white rounded-full shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-dashed border-slate-300">
+                <label class="block text-xs font-black mb-2 uppercase">1. Fichier Parc (Ailes/Selt)</label>
+                <input type="file" id="fileParc" class="w-full text-xs">
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-dashed border-slate-300">
+                <label class="block text-xs font-black mb-2 uppercase">2. Fichier Stage</label>
+                <input type="file" id="fileStage" class="w-full text-xs">
+            </div>
         </div>
 
-        <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden">
-            <div class="p-6 bg-slate-50 border-b flex justify-between">
-                <button id="btnDispatch" class="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-xl font-black uppercase text-xs transition-all shadow-lg">Lancer l'attribution</button>
-                <button onclick="location.reload()" class="text-rose-500 font-black text-[10px] uppercase">Vider / Reset</button>
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
+                <button id="run" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-sm uppercase">Calculer Dispatch</button>
+                <button onclick="location.reload()" class="text-rose-500 text-xs font-bold uppercase">Réinitialiser</button>
             </div>
-            <table class="w-full text-left">
-                <thead class="bg-slate-900 text-white/50 text-[10px] uppercase font-black">
-                    <tr><th class="p-5">Stagiaire</th><th class="p-5 text-center">Poids</th><th class="p-5 text-center">Taille</th><th class="p-5 text-center bg-blue-800 text-white">Voile</th><th class="p-5 text-center bg-slate-700 text-white">Selt.</th></tr>
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 font-black uppercase text-[10px]">
+                    <tr>
+                        <th class="p-4">Nom</th>
+                        <th class="p-4 text-center">Poids</th>
+                        <th class="p-4 text-center">Taille</th>
+                        <th class="p-4 text-center bg-blue-50">Voile</th>
+                        <th class="p-4 text-center bg-slate-100">Sellette</th>
+                    </tr>
                 </thead>
-                <tbody id="liste-stagiaires" class="divide-y divide-slate-100 font-bold uppercase text-xs"></tbody>
+                <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
             </table>
+        </div>
+
+        <div id="debug" class="mt-4 p-4 bg-black text-lime-400 font-mono text-[10px] rounded-lg overflow-auto max-h-32">
+            Système prêt. En attente de fichiers...
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, writeBatch, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyBAiOJog5nwXDn8k6YTWLJA-0CxNaQUXhk", authDomain: "dispatching-voile-sellette.firebaseapp.com", projectId: "dispatching-voile-sellette", appId: "1:933259154090:web:ab39a667fb9f35c293b6d3" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- LECTURE PARC (STRICTE) ---
-        document.getElementById('importParc').addEventListener('change', async (e) => {
+        const log = (msg) => { document.getElementById('debug').innerHTML += `<br>> ${msg}`; };
+
+        // --- LECTURE PARC ---
+        document.getElementById('fileParc').addEventListener('change', async (e) => {
             const reader = new FileReader();
             reader.onload = async () => {
-                const lines = reader.result.split(/\r?\n/).map(l => l.split(';'));
-                const batch = writeBatch(db);
+                const content = reader.result;
+                const sep = content.includes(';') ? ';' : ',';
+                const lines = content.split(/\r?\n/).map(l => l.split(sep).map(s => s.trim()));
+                log(`Fichier Parc : Séparateur détectué "${sep}"`);
                 
-                // Sellettes lignes 1 à 4
-                document.getElementById('resS').innerText = lines[0][1] || 0;
-                document.getElementById('resM').innerText = lines[1][1] || 0;
-                document.getElementById('resL').innerText = lines[2][1] || 0;
-                document.getElementById('resXL').innerText = lines[3][1] || 0;
-
-                // Voiles à partir de la ligne 7
+                const batch = writeBatch(db);
+                // Vider ancien stock
                 const old = await getDocs(collection(db, "parc_ailes"));
                 old.forEach(d => batch.delete(d.ref));
-                let vCount = 0;
-                for (let i = 6; i < lines.length; i++) {
-                    const c = lines[i];
-                    if(c[0] && c[1] && c[1].includes('-')) {
-                        vCount++;
-                        const p = c[1].split('-');
-                        batch.set(doc(collection(db, "parc_ailes")), { num: c[0].trim(), min: parseInt(p[0]), max: parseInt(p[1]) });
+
+                // Sellettes (Lignes 1 à 4)
+                document.getElementById('countS').innerText = lines[0][1] || 0;
+                document.getElementById('countM').innerText = lines[1][1] || 0;
+                document.getElementById('countL').innerText = (parseInt(lines[2][1]||0) + parseInt(lines[3][1]||0));
+
+                // Voiles (Lignes 7+)
+                let v = 0;
+                for(let i=6; i<lines.length; i++) {
+                    const row = lines[i];
+                    if(row[0] && row[1] && row[1].includes('-')) {
+                        v++;
+                        const ptv = row[1].split('-');
+                        batch.set(doc(collection(db, "parc_ailes")), { num: row[0], min: parseInt(ptv[0]), max: parseInt(ptv[1]) });
                     }
                 }
                 await batch.commit();
-                document.getElementById('resVoiles').innerText = vCount;
+                document.getElementById('countVoiles').innerText = v;
+                log(`Parc importé : ${v} voiles trouvées.`);
             };
             reader.readAsText(e.target.files[0]);
         });
 
-        // --- LECTURE STAGIAIRES (STRICTE) ---
-        document.getElementById('importStagiaires').addEventListener('change', (e) => {
+        // --- LECTURE STAGE ---
+        document.getElementById('fileStage').addEventListener('change', (e) => {
             const reader = new FileReader();
             reader.onload = async () => {
-                const lines = reader.result.split(/\r?\n/).map(l => l.split(';'));
-                for (let i = 7; i < lines.length; i++) {
-                    const c = lines[i];
-                    if (c[4] && c[4].trim() !== "" && c[4].toUpperCase() !== "NOM CLIENT") {
+                const content = reader.result;
+                const sep = content.includes(';') ? ';' : ',';
+                const lines = content.split(/\r?\n/).map(l => l.split(sep).map(s => s.trim()));
+                log(`Fichier Stage : Séparateur détectué "${sep}"`);
+
+                for(let i=7; i<lines.length; i++) {
+                    const row = lines[i];
+                    // On cherche le nom en colonne E (index 4)
+                    if(row[4] && row[4].length > 1 && row[4].toUpperCase() !== "NOM CLIENT") {
                         await addDoc(collection(db, "stagiaires"), {
-                            nom: c[4].trim(),
-                            poids: parseFloat(c[7]) || 0,
-                            taille: parseFloat(c[8]?.replace(',','.')) || 0,
-                            voile: "", sellette: ""
+                            nom: row[4], 
+                            poids: parseFloat(row[7]) || 0,
+                            taille: parseFloat(row[8]?.replace(',','.')) || 0,
+                            voile: '', sellette: ''
                         });
                     }
                 }
+                log(`Stage importé.`);
             };
             reader.readAsText(e.target.files[0]);
         });
 
-        // --- DISPATCH ---
-        document.getElementById('btnDispatch').onclick = async () => {
+        // --- CALCUL ---
+        document.getElementById('run').onclick = async () => {
             const [stags, stock] = await Promise.all([getDocs(collection(db, "stagiaires")), getDocs(collection(db, "parc_ailes"))]);
             let ailes = stock.docs.map(d => d.data());
             let prises = [];
+            
             for (const d of stags.docs) {
                 const s = d.data();
-                const ptv = (s.poids || 0) + 15;
+                const ptv = s.poids + 15;
                 const match = ailes.find(a => ptv >= a.min && ptv <= a.max && !prises.includes(a.num));
-                let v = match ? match.num : "HORS PTV";
+                let v = match ? match.num : "???";
                 if(match) prises.push(v);
                 let h = s.taille < 3 ? s.taille * 100 : s.taille;
                 let sel = h < 165 ? "S" : (h > 185 ? "L" : "M");
                 await updateDoc(d.ref, { voile: v, sellette: sel });
             }
+            log("Attribution terminée.");
         };
 
+        // --- AFFICHAGE ---
         onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
-            const list = document.getElementById("liste-stagiaires");
-            document.getElementById('resStags').innerText = snap.size;
-            list.innerHTML = "";
+            document.getElementById('countStags').innerText = snap.size;
+            const body = document.getElementById("tableBody");
+            body.innerHTML = "";
             snap.forEach(d => {
                 const s = d.data();
-                let t = s.taille < 3 ? Math.round(s.taille*100) : s.taille;
-                list.innerHTML += `<tr class="border-b"><td class="p-5 italic font-black">${s.nom}</td><td class="p-5 text-center">${s.poids}kg</td><td class="p-5 text-center">${t}cm</td><td class="p-5 text-center font-black text-blue-700 bg-blue-50">${s.voile || '-'}</td><td class="p-5 text-center bg-slate-50">${s.sellette || '-'}</td></tr>`;
+                const t = s.taille < 3 ? Math.round(s.taille*100) : s.taille;
+                body.innerHTML += `<tr>
+                    <td class="p-4 font-bold">${s.nom}</td>
+                    <td class="p-4 text-center">${s.poids}kg</td>
+                    <td class="p-4 text-center">${t}cm</td>
+                    <td class="p-4 text-center font-black text-blue-600 bg-blue-50">${s.voile || '-'}</td>
+                    <td class="p-4 text-center bg-slate-50">${s.sellette || '-'}</td>
+                </tr>`;
             });
         });
     </script>
