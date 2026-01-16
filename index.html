@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch PRO v3</title>
+    <title>Dispatch PRO v3 - École Parapente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
@@ -16,19 +16,19 @@
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <label class="block text-[10px] font-black uppercase text-slate-400 mb-2">1. Charger les stagiaires (CSV)</label>
                 <input type="file" id="importStagiaires" class="text-xs w-full mb-2" multiple>
-                <p class="text-[10px] text-slate-400 italic">Sélectionnez vos fichiers de stage</p>
+                <p class="text-[10px] text-slate-400 italic">Format: Virgule (Excel export)</p>
             </div>
 
             <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <label class="block text-[10px] font-black uppercase text-blue-400 mb-2">2. Charger le parc école (CSV)</label>
                 <input type="file" id="importParc" class="text-xs w-full">
-                <p class="text-[10px] text-blue-400 italic">Fichier "aile sellette.csv"</p>
+                <p class="text-[10px] text-blue-400 italic">Fichier: aile sellette.csv</p>
             </div>
             
             <div class="flex flex-col gap-2">
-                <button onclick="window.viderBase()" class="bg-red-100 text-red-600 font-bold py-2 rounded-xl text-xs uppercase hover:bg-red-200">Vider la liste</button>
+                <button onclick="window.viderBase()" class="bg-red-100 text-red-600 font-bold py-2 rounded-xl text-xs uppercase hover:bg-red-200">Vider stagiaires</button>
                 <button onclick="window.lancerDispatch()" class="bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-700 uppercase text-sm">Lancer le Dispatching</button>
-                <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 rounded-xl text-xs uppercase hover:bg-black">Exporter PDF complet</button>
+                <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 rounded-xl text-xs uppercase hover:bg-black">Exporter PDF terrain</button>
             </div>
         </div>
 
@@ -40,7 +40,7 @@
                         <th class="p-2 border">Né(e) le</th>
                         <th class="p-2 border">Poids</th>
                         <th class="p-2 border">Taille</th>
-                        <th class="p-2 border">Solde Dû</th>
+                        <th class="p-2 border text-red-400">Solde Dû</th>
                         <th class="p-2 border bg-blue-700 text-center">Voile (n°)</th>
                         <th class="p-2 border bg-slate-700 text-center">Sellette</th>
                         <th class="p-2 border text-slate-400">Casque</th>
@@ -54,7 +54,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBAiOJog5nwXDn8k6YTWLJA-0CxNaQUXhk",
@@ -72,42 +72,60 @@
             reader.onload = async () => {
                 const lignes = reader.result.split('\n');
                 const batch = writeBatch(db);
-                lignes.forEach((ligne, index) => {
-                    const cols = ligne.split(';'); // Format point-virgule pour le fichier matos
-                    if (index > 0 && cols[1] && cols[2]) {
-                        const ptvRange = cols[2].split('-');
+                // On vide d'abord le vieux parc
+                const oldParc = await getDocs(collection(db, "parc_ailes"));
+                oldParc.forEach(d => batch.delete(d.ref));
+
+                lignes.forEach((ligne) => {
+                    const cols = ligne.split(';');
+                    if (cols[1] && cols[2] && cols[1] !== "2") {
+                        // Gère format "60-80" ou "90_110"
+                        const ptvStr = cols[2].replace('_', '-');
+                        const ptvRange = ptvStr.split('-');
                         if(ptvRange.length === 2) {
                             const ref = doc(collection(db, "parc_ailes"));
-                            batch.set(ref, { num: cols[1].trim(), ptvMin: parseInt(ptvRange[0]), ptvMax: parseInt(ptvRange[1]) });
+                            batch.set(ref, { 
+                                num: cols[1].trim(), 
+                                ptvMin: parseInt(ptvRange[0]), 
+                                ptvMax: parseInt(ptvRange[1]) 
+                            });
                         }
                     }
                 });
                 await batch.commit();
-                alert("Parc école mis à jour !");
+                alert("Parc école chargé !");
             };
             reader.readAsText(e.target.files[0]);
         });
 
         // --- IMPORT STAGIAIRES ---
         document.getElementById('importStagiaires').addEventListener('change', (e) => {
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const lignes = reader.result.split('\n');
-                for (let i = 8; i < lignes.length; i++) {
-                    const cols = lignes[i].split(',');
-                    if (cols[4] && cols[4].trim() && cols[4] !== "Nom Client") {
-                        await addDoc(collection(db, "stagiaires"), {
-                            nom: cols[4].trim(), dob: cols[6] || "", solde: cols[3] || "0",
-                            poids: parseFloat(cols[7]) || 0, taille: parseFloat(cols[8]) || 0,
-                            voile: "", sellette: ""
-                        });
+            const files = e.target.files;
+            for (let f of files) {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    const lignes = reader.result.split('\n');
+                    for (let i = 8; i < lignes.length; i++) {
+                        const cols = lignes[i].split(',');
+                        if (cols[4] && cols[4].trim() && cols[4] !== "Nom Client") {
+                            await addDoc(collection(db, "stagiaires"), {
+                                nom: cols[4].trim(), 
+                                dob: cols[6] || "", 
+                                solde: cols[3] || "0",
+                                poids: parseFloat(cols[7]) || 0, 
+                                taille: parseFloat(cols[8]) || 0,
+                                voile: "", 
+                                sellette: ""
+                            });
+                        }
                     }
-                }
-            };
-            reader.readAsText(e.target.files[0]);
+                };
+                reader.readAsText(f);
+            }
         });
 
         window.viderBase = async () => {
+            if(!confirm("Supprimer tous les stagiaires ?")) return;
             const snap = await getDocs(collection(db, "stagiaires"));
             const batch = writeBatch(db);
             snap.forEach(d => batch.delete(d.ref));
@@ -121,38 +139,29 @@
             let ailesPrises = [];
             const batch = writeBatch(db);
 
-            stagiairesSnap.forEach(d => {
+            // Tri des stagiaires par poids (les plus légers d'abord pour optimiser le stock)
+            const docs = stagiairesSnap.docs;
+            
+            docs.forEach(d => {
                 const s = d.data();
                 const ptv = (Number(s.poids) || 0) + 15;
                 let vAttr = "STOCK";
                 
+                // Recherche d'une voile libre dans la plage
                 const match = stockAiles.find(a => ptv >= a.ptvMin && ptv <= a.ptvMax && !ailesPrises.includes(a.num));
-                if (match) { vAttr = match.num; ailesPrises.push(match.num); }
+                if (match) { 
+                    vAttr = match.num; 
+                    ailesPrises.push(match.num); 
+                }
 
+                // Logique Sellette
                 const t = s.taille < 3 ? s.taille * 100 : s.taille;
-                let selt = t < 165 ? "S" : (t > 185 ? "L" : "M");
+                let selt = "M";
+                if(t < 165) selt = "S"; else if(t > 185) selt = "L"; else if(t > 195) selt = "XL";
+
                 batch.update(d.ref, { voile: vAttr, sellette: selt });
             });
             await batch.commit();
         };
 
-        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
-            const list = document.getElementById("liste-stagiaires");
-            list.innerHTML = "";
-            snap.forEach(d => {
-                const s = d.data();
-                list.innerHTML += `<tr class="border-b hover:bg-slate-50 uppercase">
-                    <td class="p-2 font-bold">${s.nom}</td>
-                    <td class="p-2 text-slate-500">${s.dob}</td>
-                    <td class="p-2">${s.poids}kg</td>
-                    <td class="p-2">${s.taille < 3 ? Math.round(s.taille*100) : s.taille}cm</td>
-                    <td class="p-2 text-red-600 font-bold">${s.solde}€</td>
-                    <td class="p-2 text-center font-black text-blue-600">${s.voile || '-'}</td>
-                    <td class="p-2 text-center font-bold">${s.sellette || '-'}</td>
-                    <td class="p-2"></td><td class="p-2"></td>
-                </tr>`;
-            });
-        });
-
-        document.getElementById('btnPdf').addEventListener('click', () => {
-            const { jsPDF
+        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")),
