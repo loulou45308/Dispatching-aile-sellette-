@@ -3,120 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dispatch Matos - École de Parapente</title>
+    <title>Dispatch PRO - École de Parapente</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 font-sans">
+<body class="bg-gray-100 p-4 font-sans text-gray-900">
 
-    <div class="max-w-md mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-black text-blue-400 uppercase tracking-tighter">Dispatch Matos</h1>
-            <p class="text-slate-500 text-sm italic">Prêt pour le gonflage ?</p>
-        </header>
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl p-6">
+        <h1 class="text-2xl font-black text-center mb-6 uppercase tracking-widest text-blue-800 border-b pb-4">Tableau de Dispatching 2025</h1>
 
-        <div class="bg-slate-800 p-5 rounded-2xl mb-8 border border-slate-700 shadow-xl">
-            <label class="block text-xs font-bold text-blue-300 mb-3 uppercase tracking-widest text-center">Charger la liste des stagiaires</label>
-            <input type="file" id="csvFile" accept=".csv" 
-                class="block w-full text-sm text-slate-400
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-sm file:font-bold
-                file:bg-blue-600 file:text-white
-                hover:file:bg-blue-500 file:cursor-pointer">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="space-y-2">
+                <label class="block text-[10px] font-bold uppercase text-gray-400">1. Charger les stages (CSV)</label>
+                <input type="file" id="import1" class="text-xs w-full border p-1 rounded">
+                <input type="file" id="import2" class="text-xs w-full border p-1 rounded">
+                <input type="file" id="import3" class="text-xs w-full border p-1 rounded">
+            </div>
+            
+            <div class="flex flex-col justify-end space-y-2">
+                <button onclick="window.viderBase()" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition">Vider la liste</button>
+                <button onclick="window.lancerDispatch()" class="bg-green-600 text-white font-black py-4 px-4 rounded-lg hover:bg-green-700 shadow-lg animate-pulse uppercase">Lancer Dispatching</button>
+            </div>
+
+            <div class="flex flex-col justify-end">
+                <button id="btnPdf" class="bg-slate-800 text-white font-bold py-2 px-4 rounded-lg hover:bg-black flex items-center justify-center gap-2">
+                    📄 Export PDF
+                </button>
+            </div>
         </div>
 
-        <div id="liste-stagiaires" class="space-y-4">
-            <div class="text-center py-10 text-slate-600 italic border-2 border-dashed border-slate-800 rounded-2xl">
-                En attente du fichier CSV...
-            </div>
+        <div class="overflow-x-auto">
+            <table id="tableDispatch" class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-gray-800 text-white uppercase text-[10px]">
+                        <th class="p-3 border">Nom Client</th>
+                        <th class="p-3 border">Poids</th>
+                        <th class="p-3 border">Taille</th>
+                        <th class="p-3 border bg-blue-700 text-center">Voile (n°)</th>
+                        <th class="p-3 border bg-blue-900 text-center">Sellette</th>
+                    </tr>
+                </thead>
+                <tbody id="liste-stagiaires">
+                    </tbody>
+            </table>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBAiOJog5nwXDn8k6YTWLJA-0CxNaQUXhk",
             authDomain: "dispatching-voile-sellette.firebaseapp.com",
             projectId: "dispatching-voile-sellette",
-            storageBucket: "dispatching-voile-sellette.appspot.com",
             appId: "1:933259154090:web:ab39a667fb9f35c293b6d3"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- LECTURE DU FICHIER CSV ---
-        document.getElementById('csvFile').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const lignes = reader.result.split('\n');
-                
-                lignes.forEach((ligne, index) => {
-                    const colonnes = ligne.split(','); // Remplace par ';' si ça ne marche pas
-                    
-                    // On filtre pour ne prendre que les lignes avec un nom (colonne index 4)
-                    if (index > 6 && colonnes[4] && colonnes[4].trim() !== "" && colonnes[4] !== "Nom Client") {
-                        addDoc(collection(db, "stagiaires"), {
-                            nom: colonnes[4].trim(),
-                            poids: parseFloat(colonnes[7]) || 0,
-                            taille: parseFloat(colonnes[8]) || 0,
-                            timestamp: Date.now()
-                        });
+        // --- TON INVENTAIRE DES VOILES (Extrait de ton CSV) ---
+        const inventaireAiles = [
+            { id: "1", ptv: [60, 80] }, { id: "3", ptv: [70, 90] }, { id: "4", ptv: [90, 110] },
+            { id: "5", ptv: [90, 115] }, { id: "7", ptv: [90, 110] }, { id: "8", ptv: [75, 95] },
+            { id: "14", ptv: [60, 80] }, { id: "15", ptv: [100, 130] }
+        ];
+
+        // --- IMPORTATION ---
+        const setupImport = (elementId) => {
+            document.getElementById(elementId).addEventListener('change', (e) => {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    const lignes = reader.result.split('\n');
+                    for (let i = 8; i < lignes.length; i++) {
+                        const cols = lignes[i].split(',');
+                        if (cols[4] && cols[4].trim()) {
+                            await addDoc(collection(db, "stagiaires"), {
+                                nom: cols[4].trim(),
+                                poids: parseFloat(cols[7]) || 0,
+                                taille: parseFloat(cols[8]) || 0,
+                                voile: "", // Vide au départ
+                                sellette: ""
+                            });
+                        }
                     }
-                });
-                alert("Stagiaires ajoutés à la base !");
-            };
-            reader.readAsText(e.target.files[0]);
+                };
+                reader.readAsText(e.target.files[0]);
+            });
+        };
+        ["import1", "import2", "import3"].forEach(setupImport);
+
+        // --- VIDER LA BASE ---
+        window.viderBase = async () => {
+            if(!confirm("Supprimer tous les stagiaires ?")) return;
+            const snap = await getDocs(collection(db, "stagiaires"));
+            snap.forEach(async (d) => await deleteDoc(doc(db, "stagiaires", d.id)));
+        };
+
+        // --- DISPATCHING LOGIQUE ---
+        window.lancerDispatch = async () => {
+            const snap = await getDocs(collection(db, "stagiaires"));
+            let ailesPrises = [];
+
+            for (const d of snap.docs) {
+                const s = d.data();
+                const ptv = (Number(s.poids) || 0) + 15;
+                
+                // Trouver la voile
+                let voileAttribuee = "STOCK";
+                const match = inventaireAiles.find(a => ptv >= a.ptv[0] && ptv <= a.ptv[1] && !ailesPrises.includes(a.id));
+                
+                if (match) {
+                    voileAttribuee = match.id;
+                    ailesPrises.push(match.id);
+                }
+
+                // Calcul Sellette
+                const t = s.taille < 3 ? s.taille * 100 : s.taille;
+                let selt = "M";
+                if(t < 165) selt = "S"; else if(t > 185) selt = "L"; else if(t > 195) selt = "XL";
+
+                // Mise à jour Firebase
+                const ref = doc(db, "stagiaires", d.id);
+                await deleteDoc(ref); // On recrée pour forcer l'affichage propre
+                await addDoc(collection(db, "stagiaires"), { ...s, voile: voileAttribuee, sellette: selt });
+            }
+        };
+
+        // --- AFFICHAGE ---
+        onSnapshot(query(collection(db, "stagiaires"), orderBy("nom")), (snap) => {
+            const list = document.getElementById("liste-stagiaires");
+            list.innerHTML = "";
+            snap.forEach(d => {
+                const s = d.data();
+                list.innerHTML += `<tr class="border-b hover:bg-gray-50 uppercase font-bold">
+                    <td class="p-3">${s.nom}</td>
+                    <td class="p-3">${s.poids} kg</td>
+                    <td class="p-3">${s.taille < 3 ? Math.round(s.taille*100) : s.taille} cm</td>
+                    <td class="p-3 text-center text-blue-700 font-black">${s.voile || '---'}</td>
+                    <td class="p-3 text-center">${s.sellette || '---'}</td>
+                </tr>`;
+            });
         });
 
-        // --- AFFICHAGE EN DIRECT ---
-        const q = query(collection(db, "stagiaires"), orderBy("nom", "asc"));
-        onSnapshot(q, (snapshot) => {
-            const liste = document.getElementById("liste-stagiaires");
-            liste.innerHTML = "";
-            
-            snapshot.forEach((doc) => {
-                const s = doc.data();
-                const ptv = (Number(s.poids) || 0) + 15;
-                const tailleCM = s.taille < 3 ? Math.round(s.taille * 100) : s.taille;
-
-                // Logique Voile (Basé sur PTV)
-                let aile = "L"; 
-                if (ptv < 80) aile = "S";
-                else if (ptv <= 100) aile = "M";
-
-                // Logique Sellette (Basé sur Taille)
-                let sellette = "M";
-                if (tailleCM < 170) sellette = "S";
-                else if (tailleCM > 185) sellette = "L";
-
-                liste.innerHTML += `
-                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border-b-4 border-blue-500">
-                        <div class="p-4 flex justify-between items-center text-slate-900">
-                            <div>
-                                <h3 class="text-xl font-black uppercase leading-none">${s.nom}</h3>
-                                <p class="text-slate-400 text-xs font-bold mt-1">${tailleCM} CM / ${s.poids} KG</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-2xl font-black text-blue-600 leading-none">${ptv}</span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase italic">PTV Estimé</span>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-slate-50 p-3 flex gap-2 border-t border-slate-100">
-                            <div class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg">
-                                <span class="block text-[10px] opacity-70 font-bold uppercase">Voile conseillée</span>
-                                <span class="text-lg font-black">${aile}</span>
-                            </div>
-                            <div class="flex-1 bg-slate-800 text-white text-center py-2 rounded-lg">
-                                <span class="block text-[10px] opacity-70 font-bold uppercase">Sellette</span>
-                                <span class="text-lg font-black">${sellette}</span>
-                            </div>
-                        </div>
-                    </div>`;
-            });
+        // --- EXPORT PDF ---
+        document.getElementById('btnPdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("DISPATCHING STAGIAIRES - ECOLE DE PARAPENTE", 14, 15);
+            doc.autoTable({ html: '#tableDispatch',startY: 25 });
+            doc.save('dispatch-journee.pdf');
         });
     </script>
 </body>
