@@ -2,18 +2,15 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch V42</title>
+    <title>Dispatch V43</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-10 font-sans text-slate-900">
 
     <div class="fixed top-2 left-2 z-50 flex items-center gap-2">
-        <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase tracking-widest shadow-md">Version : 42</span>
-        <button onclick="location.reload()" class="bg-red-600 text-white text-[10px] px-3 py-1 rounded font-black uppercase shadow-md transition-transform active:scale-95">Réinitialiser</button>
-        
-        <button id="btnDispatch" onclick="lancerDispatching()" class="bg-slate-400 text-white text-[10px] px-4 py-1 rounded font-black uppercase tracking-widest shadow-lg transition-all">
-            Lancer le Dispatching
-        </button>
+        <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase shadow-md">Version : 43</span>
+        <button onclick="location.reload()" class="bg-red-600 text-white text-[10px] px-3 py-1 rounded font-black uppercase shadow-md active:scale-95">Réinitialiser</button>
+        <button id="btnDispatch" onclick="lancerDispatching()" class="bg-slate-400 text-white text-[10px] px-4 py-1 rounded font-black uppercase shadow-lg transition-all">Lancer le Dispatching</button>
     </div>
 
     <div class="max-w-6xl mx-auto">
@@ -40,7 +37,7 @@
             <button id="btn1" onclick="afficherOnglet(1)" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 1</button>
             <button id="btn2" onclick="afficherOnglet(2)" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 2</button>
             <button id="btn3" onclick="afficherOnglet(3)" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 3</button>
-            <button id="btnParc" onclick="afficherOnglet('parc')" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white ml-4">Données Parc</button>
+            <button id="btnParc" onclick="afficherOnglet('parc')" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white ml-4 shadow-sm">Données Parc</button>
         </div>
 
         <div id="zoneAffichage" class="hidden">
@@ -51,13 +48,13 @@
                 </div>
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
+                        <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest text-center">
                             <tr>
-                                <th class="p-4 border-r border-slate-800 text-white">Nom Pilote</th>
-                                <th class="p-4 border-r border-slate-800 text-center">Poids/Taille</th>
-                                <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile Attribuée</th>
-                                <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Selt.</th>
-                                <th class="p-4 text-center bg-slate-800 text-white">Csq / Rad</th>
+                                <th class="p-4 border-r border-slate-800 text-white text-left">Nom Pilote</th>
+                                <th class="p-4 border-r border-slate-800">Poids/Taille</th>
+                                <th class="p-4 border-r border-slate-800 bg-blue-900 text-white w-1/4">Voile Attribuée</th>
+                                <th class="p-4 border-r border-slate-800 bg-slate-800 text-white">Selt.</th>
+                                <th class="p-4 bg-slate-800 text-white">Observations</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyStage" class="divide-y divide-slate-200 font-bold"></tbody>
@@ -67,8 +64,9 @@
 
             <div id="vueParc" class="hidden">
                 <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-amber-500">
-                    <h2 class="font-black text-amber-600 uppercase italic">Statut du matériel</h2>
-                    <p id="statutMatos" class="text-sm text-slate-500">Aucun fichier parc chargé.</p>
+                    <h2 class="font-black text-amber-600 uppercase italic mb-2">Statut du matériel chargé</h2>
+                    <p id="statutMatos" class="text-sm font-bold text-slate-700"></p>
+                    <p class="text-xs text-slate-400 mt-2 italic">Prêt pour le dispatching (Calcul PTV: Poids + 17kg)</p>
                 </div>
             </div>
         </div>
@@ -76,26 +74,29 @@
 
     <script>
         let memoireStages = { 1: null, 2: null, 3: null };
-        let memoireParc = { sellettes: [], voiles: [] };
+        let memoireParc = { sellettes: [], voiles: [], totalS: 0, totalV: 0 };
 
         function chargerParc(input) {
             const file = input.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
                 const lines = e.target.result.split(/\r?\n/);
-                memoireParc = { sellettes: [], voiles: [] };
+                memoireParc = { sellettes: [], voiles: [], totalS: 0, totalV: 0 };
                 lines.forEach((line, idx) => {
                     const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
                     if (idx >= 2 && idx <= 5) {
                         const t = col[2].split('/');
-                        memoireParc.sellettes.push({ type: col[0], min: parseInt(t[0]), max: parseInt(t[1]), stock: parseInt(col[6]) || 0 });
+                        const qte = parseInt(col[6]) || 0;
+                        memoireParc.sellettes.push({ type: col[0], min: parseInt(t[0]), max: parseInt(t[1]), stock: qte });
+                        memoireParc.totalS += qte;
                     }
                     if (idx >= 8 && col[0] && col[6] === "1") {
                         const ptv = col[2].match(/(\d+)-(\d+)/);
                         memoireParc.voiles.push({ nom: col[0], rack: col[1], ptvMin: ptv?parseInt(ptv[1]):0, ptvMax: ptv?parseInt(ptv[2]):999, dispo: true });
+                        memoireParc.totalV++;
                     }
                 });
-                document.getElementById('statutMatos').innerText = "Parc chargé : " + memoireParc.voiles.length + " voiles prêtes.";
+                document.getElementById('statutMatos').innerText = memoireParc.totalV + " voiles et " + memoireParc.totalS + " sellettes prêtes.";
                 document.getElementById('btnDispatch').classList.replace('bg-slate-400', 'bg-blue-600');
                 document.getElementById('btnDispatch').classList.add('animate-pulse');
                 document.getElementById('navTabs').classList.remove('hidden');
@@ -110,12 +111,12 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const lines = e.target.result.split(/\r?\n/);
-                const stage = { titre: "Sans titre", eleves: [] };
+                const stage = { titre: "Stage", eleves: [] };
                 if(lines[0]) stage.titre = lines[0].split(';')[0].replace(/["']/g, "").trim();
                 lines.forEach((line, idx) => {
                     const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
                     if (idx >= 1 && col[3] && col[3].toLowerCase() !== "nom client" && col[5] !== "") {
-                        stage.eleves.push({ nom: col[3], poids: parseFloat(col[5]), taille: parseFloat(col[6]), voile: "-", selt: "-" });
+                        stage.eleves.push({ nom: col[3], poids: parseFloat(col[5]), taille: parseFloat(col[6]), voile: "-", selt: "-", limite: false });
                     }
                 });
                 memoireStages[id] = stage;
@@ -127,29 +128,38 @@
         }
 
         function lancerDispatching() {
-            if (memoireParc.sellettes.length === 0) return alert("Chargez d'abord le fichier Parc (le bouton orange) !");
-            
-            let stockS = JSON.parse(JSON.stringify(memoireParc.sellettes));
-            let stockV = JSON.parse(JSON.stringify(memoireParc.voiles));
+            if (memoireParc.sellettes.length === 0) return alert("Chargez d'abord le fichier Parc !");
+            let sS = JSON.parse(JSON.stringify(memoireParc.sellettes));
+            let sV = JSON.parse(JSON.stringify(memoireParc.voiles));
 
             [1, 2, 3].forEach(id => {
                 if (memoireStages[id]) {
                     memoireStages[id].eleves.forEach(el => {
                         let tCm = el.taille * 100;
-                        let selt = stockS.find(s => tCm >= s.min && tCm <= s.max && s.stock > 0);
+                        let selt = sS.find(s => tCm >= s.min && tCm <= s.max && s.stock > 0);
                         if (selt) { el.selt = selt.type; selt.stock--; } else { el.selt = "STOCK"; }
 
                         let ptv = el.poids + 17;
-                        let voile = stockV.find(v => v.dispo && ptv >= v.ptvMin && ptv <= v.ptvMax);
-                        if (voile) { el.voile = `${voile.nom} (R${voile.rack})`; voile.dispo = false; } else { el.voile = "STOCK"; }
+                        // Recherche parfaite
+                        let v = sV.find(v => v.dispo && ptv >= v.ptvMin && ptv <= v.ptvMax);
+                        if (v) {
+                            el.voile = `${v.nom} (R${v.rack})`; v.dispo = false; el.limite = false;
+                        } else {
+                            // Recherche à +/- 5kg
+                            let vLim = sV.find(v => v.dispo && ptv >= (v.ptvMin-5) && ptv <= (v.ptvMax+5));
+                            if (vLim) {
+                                el.voile = `${vLim.nom} (R${vLim.rack})`; vLim.dispo = false; el.limite = true;
+                            } else {
+                                el.voile = "STOCK"; el.limite = false;
+                            }
+                        }
                     });
                 }
             });
-
-            document.getElementById('btnDispatch').innerText = "Dispatching OK !";
+            document.getElementById('btnDispatch').innerText = "Dispatching Terminé";
             document.getElementById('btnDispatch').classList.remove('animate-pulse');
-            const premier = [1,2,3].find(i => memoireStages[i]);
-            if(premier) afficherOnglet(premier);
+            const p = [1,2,3].find(i => memoireStages[i]);
+            if(p) afficherOnglet(p);
         }
 
         function afficherOnglet(id) {
@@ -162,22 +172,22 @@
             document.getElementById('vueParc').classList.add('hidden');
 
             if (id === 'parc') {
-                document.getElementById('btnParc').className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white shadow-sm z-10";
+                document.getElementById('btnParc').className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white z-10 shadow-sm";
                 document.getElementById('vueParc').classList.remove('hidden');
             } else {
-                const data = memoireStages[id];
-                if (!data) return;
-                document.getElementById('btn' + id).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-white border-t-4 border-blue-600 text-blue-600 shadow-sm z-10";
+                const d = memoireStages[id];
+                if (!d) return;
+                document.getElementById('btn' + id).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-white border-t-4 border-blue-600 text-blue-600 z-10 shadow-sm";
                 document.getElementById('vueStage').classList.remove('hidden');
-                document.getElementById('titreStage').innerText = data.titre;
-                document.getElementById('nbStagiaires').innerText = data.eleves.length;
-                document.getElementById('tbodyStage').innerHTML = data.eleves.map(el => `
-                    <tr class="hover:bg-blue-50 transition-colors italic text-black font-bold">
-                        <td class="p-4 border-r border-slate-100 font-black uppercase text-slate-900">${el.nom}</td>
-                        <td class="p-4 border-r border-slate-100 text-center text-xs font-normal text-slate-500">${el.poids}kg / ${el.taille}m</td>
-                        <td class="p-4 border-r border-slate-100 text-center ${el.voile === 'STOCK' ? 'text-red-600' : 'text-blue-700'}">${el.voile}</td>
+                document.getElementById('titreStage').innerText = d.titre;
+                document.getElementById('nbStagiaires').innerText = d.eleves.length;
+                document.getElementById('tbodyStage').innerHTML = d.eleves.map(el => `
+                    <tr class="hover:bg-blue-50 italic text-black font-bold">
+                        <td class="p-4 border-r border-slate-100 uppercase text-slate-900">${el.nom}</td>
+                        <td class="p-4 border-r border-slate-100 text-center text-[10px] font-normal text-slate-500">${el.poids}kg / ${el.taille}m</td>
+                        <td class="p-4 border-r border-slate-100 text-center ${el.limite ? 'text-red-600 animate-pulse' : (el.voile === 'STOCK' ? 'text-red-600' : 'text-blue-700')}">${el.voile}</td>
                         <td class="p-4 border-r border-slate-100 text-center ${el.selt === 'STOCK' ? 'text-red-600' : 'text-slate-900'}">${el.selt}</td>
-                        <td class="p-4 text-center text-slate-400 font-normal">- / -</td>
+                        <td class="p-4 text-center text-[10px] font-normal text-slate-400">${el.limite ? '⚠️ Hors PTV (+/- 5kg)' : '-'}</td>
                     </tr>`).join('');
             }
         }
