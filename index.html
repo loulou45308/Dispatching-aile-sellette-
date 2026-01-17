@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dispatch V44 - Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .row-hover:hover { background-color: rgba(241, 245, 249, 1); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 pb-20">
+
+    <nav class="sticky top-0 z-50 glass border-b border-slate-200 px-6 py-3 mb-8 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Parapente Dispatch</span>
+                    <span class="text-xs font-bold text-slate-900">VERSION 44</span>
+                </div>
+                <div class="h-8 w-[1px] bg-slate-200"></div>
+                <button id="btnDispatch" onclick="lancerDispatching()" class="bg-slate-200 text-slate-500 cursor-not-allowed px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all shadow-sm">
+                    En attente des données
+                </button>
+            </div>
+            <button onclick="location.reload()" class="text-red-500 hover:bg-red-50 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition-colors">
+                Réinitialiser
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4">
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="group bg-amber-50 p-6 rounded-3xl border-2 border-dashed border-amber-200 hover:border-amber-400 transition-all">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white font-black">1</div>
+                    <p class="text-xs font-black text-amber-700 uppercase">Parc École</p>
+                </div>
+                <input type="file" onchange="chargerParc(this)" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-amber-500 file:text-white hover:file:bg-amber-600 cursor-pointer"/>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-black text-blue-500 uppercase mb-4">Stage 1</p>
+                <input type="file" onchange="chargerStage(this, 1)" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-600 hover:file:bg-slate-200 cursor-pointer"/>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-black text-emerald-500 uppercase mb-4">Stage 2</p>
+                <input type="file" onchange="chargerStage(this, 2)" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-600 hover:file:bg-slate-200 cursor-pointer"/>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-black text-purple-500 uppercase mb-4">Stage 3</p>
+                <input type="file" onchange="chargerStage(this, 3)" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-600 hover:file:bg-slate-200 cursor-pointer"/>
+            </div>
+        </div>
+
+        <div id="navTabs" class="hidden flex gap-2 mb-4 px-2">
+            <button id="btn1" onclick="afficherOnglet(1)" class="px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest transition-all">Stage 1</button>
+            <button id="btn2" onclick="afficherOnglet(2)" class="px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest transition-all">Stage 2</button>
+            <button id="btn3" onclick="afficherOnglet(3)" class="px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest transition-all">Stage 3</button>
+            <button id="btnParc" onclick="afficherOnglet('parc')" class="ml-auto px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest bg-amber-500 text-white shadow-lg">Inventaire Parc</button>
+        </div>
+
+        <div id="zoneAffichage" class="hidden">
+            <div id="vueStage" class="hidden animate-in fade-in duration-500">
+                <div class="bg-white p-8 rounded-b-3xl rounded-tr-3xl shadow-xl border border-slate-200">
+                    <div class="flex justify-between items-end mb-8 border-b pb-6">
+                        <div>
+                            <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Listing Stagiaires</span>
+                            <h1 id="titreStage" class="text-3xl font-black italic uppercase text-slate-900 tracking-tighter"></h1>
+                        </div>
+                        <div class="text-right">
+                            <span id="nbStagiaires" class="text-4xl font-black text-slate-200 block">0</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Pilotes</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b">
+                                    <th class="pb-4 text-left px-4">Pilote</th>
+                                    <th class="pb-4 text-center px-4">Morphologie</th>
+                                    <th class="pb-4 text-center px-4 bg-blue-50/50 rounded-t-xl text-blue-600">Voile Attribuée</th>
+                                    <th class="pb-4 text-center px-4">Sellette</th>
+                                    <th class="pb-4 text-center px-4">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyStage" class="text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="vueParc" class="hidden animate-in zoom-in-95 duration-300">
+                <div class="bg-amber-600 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h2 class="text-5xl font-black italic uppercase tracking-tighter mb-4">Stock École</h2>
+                        <p id="statutMatos" class="text-amber-100 font-bold text-lg"></p>
+                    </div>
+                    <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-amber-500 rounded-full opacity-50"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let memoireStages = { 1: null, 2: null, 3: null };
+        let memoireParc = { sellettes: [], voiles: [], totalS: 0, totalV: 0 };
+
+        function chargerParc(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                memoireParc = { sellettes: [], voiles: [], totalS: 0, totalV: 0 };
+                lines.forEach((line, idx) => {
+                    const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
+                    if (idx >= 2 && idx <= 5 && col[2]) {
+                        const t = col[2].split('/');
+                        const qte = parseInt(col[6]) || 0;
+                        memoireParc.sellettes.push({ type: col[0], min: parseInt(t[0]), max: parseInt(t[1]), stock: qte });
+                        memoireParc.totalS += qte;
+                    }
+                    if (idx >= 8 && col[0] && col[6] === "1") {
+                        const ptv = col[2].match(/(\d+)-(\d+)/);
+                        memoireParc.voiles.push({ nom: col[0], rack: col[1], ptvMin: ptv?parseInt(ptv[1]):0, ptvMax: ptv?parseInt(ptv[2]):999, dispo: true });
+                        memoireParc.totalV++;
+                    }
+                });
+                document.getElementById('statutMatos').innerText = `${memoireParc.totalV} Voiles disponibles & ${memoireParc.totalS} Sellettes en stock.`;
+                const btnD = document.getElementById('btnDispatch');
+                btnD.className = "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all shadow-lg animate-pulse cursor-pointer";
+                btnD.innerText = "Lancer le Dispatching";
+                document.getElementById('navTabs').classList.remove('hidden');
+                document.getElementById('zoneAffichage').classList.remove('hidden');
+                afficherOnglet('parc');
+            };
+            reader.readAsText(file);
+        }
+
+        function chargerStage(input, id) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                const stage = { titre: "Sans titre", eleves: [] };
+                if(lines[0]) stage.titre = lines[0].split(';')[0].replace(/["']/g, "").trim();
+                lines.forEach((line, idx) => {
+                    const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
+                    if (idx >= 1 && col[3] && col[3].toLowerCase() !== "nom client" && col[5] !== "") {
+                        stage.eleves.push({ nom: col[3], poids: parseFloat(col[5]), taille: parseFloat(col[6]), voile: "-", selt: "-", limite: false });
+                    }
+                });
+                memoireStages[id] = stage;
+                document.getElementById('navTabs').classList.remove('hidden');
+                document.getElementById('zoneAffichage').classList.remove('hidden');
+                afficherOnglet(id);
+            };
+            reader.readAsText(file);
+        }
+
+        function lancerDispatching() {
+            if (memoireParc.sellettes.length === 0) return;
+            let sS = JSON.parse(JSON.stringify(memoireParc.sellettes));
+            let sV = JSON.parse(JSON.stringify(memoireParc.voiles));
+
+            [1, 2, 3].forEach(id => {
+                if (memoireStages[id]) {
+                    memoireStages[id].eleves.forEach(el => {
+                        let tCm = el.taille * 100;
+                        let selt = sS.find(s => tCm >= s.min && tCm <= s.max && s.stock > 0);
+                        if (selt) { el.selt = selt.type; sS.find(s => s.type === selt.type).stock--; } else { el.selt = "STOCK"; }
+
+                        let ptv = el.poids + 12; // NOUVEAU PTV +12kg
+                        let v = sV.find(v => v.dispo && ptv >= v.ptvMin && ptv <= v.ptvMax);
+                        if (v) {
+                            el.voile = `${v.nom} (R${v.rack})`; v.dispo = false; el.limite = false;
+                        } else {
+                            let vL = sV.find(v => v.dispo && ptv >= (v.ptvMin-5) && ptv <= (v.ptvMax+5));
+                            if (vL) { el.voile = `${vL.nom} (R${vL.rack})`; vL.dispo = false; el.limite = true; } else { el.voile = "STOCK"; }
+                        }
+                    });
+                }
+            });
+            const btnD = document.getElementById('btnDispatch');
+            btnD.innerText = "Dispatching Terminé";
+            btnD.classList.remove('animate-pulse');
+            btnD.classList.replace('bg-blue-600', 'bg-emerald-500');
+            const p = [1,2,3].find(i => memoireStages[i]);
+            if(p) afficherOnglet(p);
+        }
+
+        function afficherOnglet(id) {
+            const btns = ['btn1', 'btn2', 'btn3', 'btnParc'];
+            btns.forEach(b => {
+                const el = document.getElementById(b);
+                if(el) el.className = "px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest bg-slate-200 text-slate-400 hover:bg-slate-300 transition-all";
+            });
+            document.getElementById('vueStage').classList.add('hidden');
+            document.getElementById('vueParc').classList.add('hidden');
+
+            if (id === 'parc') {
+                document.getElementById('btnParc').className = "px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest bg-amber-500 text-white shadow-lg z-10 scale-105";
+                document.getElementById('vueParc').classList.remove('hidden');
+            } else {
+                const d = memoireStages[id];
+                if (!d) return;
+                document.getElementById('btn' + id).className = "px-8 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest bg-white border-t-4 border-blue-600 text-blue-600 z-10 shadow-sm scale-105";
+                document.getElementById('vueStage').classList.remove('hidden');
+                document.getElementById('titreStage').innerText = d.titre;
+                document.getElementById('nbStagiaires').innerText = d.eleves.length.toString().padStart(2, '0');
+                
+                document.getElementById('tbodyStage').innerHTML = d.eleves.map(el => `
+                    <tr class="row-hover border-b border-slate-50 transition-colors">
+                        <td class="p-4 font-black uppercase text-slate-900 ${el.limite ? 'text-red-600' : ''}">${el.nom}</td>
+                        <td class="p-4 text-center text-[11px] font-bold text-slate-500">${el.poids}kg / ${el.taille}m</td>
+                        <td class="p-4 text-center bg-blue-50/30">
+                            <span class="${el.voile === 'STOCK' || el.limite ? 'text-red-600' : 'text-blue-700'} font-black uppercase tracking-tight">${el.voile}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="${el.selt === 'STOCK' ? 'text-red-600' : 'text-slate-900'} font-black">${el.selt}</span>
+                        </td>
+                        <td class="p-4 text-center text-[10px] italic ${el.limite ? 'text-red-500 font-black' : 'text-slate-400'}">
+                            ${el.limite ? '⚠️ HORS PTV (+/- 5KG)' : '-'}
+                        </td>
+                    </tr>`).join('');
+            }
+        }
+    </script>
+</body>
+</html>
