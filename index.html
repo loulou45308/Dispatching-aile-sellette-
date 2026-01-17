@@ -2,38 +2,47 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dossier Stage Stable</title>
+    <title>Dispatch V27</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-10 font-sans text-slate-900">
 
+    <div class="fixed top-2 left-2 bg-black text-white text-[10px] px-2 py-1 rounded font-mono z-50">
+        VERSION 27
+    </div>
+
     <div class="max-w-6xl mx-auto">
         
-        <div id="blocTitre" class="hidden mb-6 bg-blue-700 text-white p-6 rounded-2xl shadow-lg">
-            <h1 id="titreStage" class="text-2xl font-black uppercase italic text-center"></h1>
+        <div id="blocTitre" class="hidden mb-6 bg-blue-700 text-white p-6 rounded-2xl shadow-lg border-b-4 border-blue-900">
+            <h1 id="titreStage" class="text-2xl font-black uppercase italic text-center tracking-tight"></h1>
         </div>
 
-        <div class="bg-white p-8 rounded-2xl shadow-md border-2 border-dashed border-slate-300 text-center mb-8">
-            <input type="file" id="inputFile" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
+        <div class="bg-white p-8 rounded-2xl shadow-md border-2 border-dashed border-slate-300 text-center mb-8 hover:border-blue-400 transition-colors">
+            <p class="text-xs font-bold text-slate-400 uppercase mb-4">Sélectionnez le fichier "stage init ez.csv"</p>
+            <input type="file" id="inputFile" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
         </div>
 
-        <div id="zoneTableau" class="hidden bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div id="zoneTableau" class="hidden bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs md:text-sm">
-                    <thead class="bg-slate-900 text-slate-400 uppercase font-black tracking-widest">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
                         <tr>
-                            <th class="p-4 border-r border-slate-800">Nom</th>
-                            <th class="p-4 border-r border-slate-800">Naissance</th>
-                            <th class="p-4 border-r border-slate-800 text-center">Poids</th>
-                            <th class="p-4 border-r border-slate-800 text-center">Taille</th>
+                            <th class="p-4 border-r border-slate-800">Nom Pilote</th>
+                            <th class="p-4 border-r border-slate-800">Date Naissance</th>
+                            <th class="p-4 border-r border-slate-800 text-center w-24">Poids</th>
+                            <th class="p-4 border-r border-slate-800 text-center w-24">Taille</th>
                             <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile</th>
                             <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Selt.</th>
                             <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Casque</th>
                             <th class="p-4 text-center bg-slate-800 text-white">Radio</th>
                         </tr>
                     </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-200"></tbody>
+                    <tbody id="tbody" class="divide-y divide-slate-200 font-bold">
+                        </tbody>
                 </table>
+            </div>
+            <div id="infoBas" class="bg-slate-50 p-3 text-right text-[10px] font-black text-slate-400 uppercase">
+                0 ÉLÈVES DÉTECTÉS
             </div>
         </div>
     </div>
@@ -45,43 +54,51 @@
 
             const reader = new FileReader();
             reader.onload = function(event) {
-                const lines = event.target.result.split(/\r?\n/);
+                const text = event.target.result;
+                const lines = text.split(/\r?\n/);
                 const tbody = document.getElementById('tbody');
                 tbody.innerHTML = '';
+                let eleveCount = 0;
 
-                // 1. EXTRACTION DU TITRE (Ligne 1)
-                const firstLine = lines[0].split(';')[0].replace(/"/g, '').trim();
-                if(firstLine) {
-                    document.getElementById('titreStage').innerText = firstLine;
+                // 1. ANALYSE DU TITRE (Ligne 1)
+                const firstLine = lines[0].split(';');
+                if (firstLine[0]) {
+                    document.getElementById('titreStage').innerText = firstLine[0].replace(/"/g, '').trim();
                     document.getElementById('blocTitre').classList.remove('hidden');
                 }
 
-                // 2. EXTRACTION DES ELEVES (On cherche partout où il y a un nom et un poids)
-                lines.forEach(line => {
-                    const c = line.split(';').map(cell => cell.trim());
-                    
-                    // On vérifie si c'est une ligne de stagiaire :
-                    // Index 3 = Nom, Index 5 = Poids
-                    const nom = c[3];
-                    const poids = c[5];
+                // 2. ANALYSE DES LIGNES
+                lines.forEach((line, index) => {
+                    const columns = line.split(';').map(c => c.trim().replace(/"/g, ''));
 
-                    if (nom && nom.toLowerCase() !== "nom client" && !isNaN(parseFloat(poids))) {
+                    // On cible les colonnes de "stage init ez.csv" :
+                    // Index 3 = Nom | Index 4 = Naissance | Index 5 = Poids | Index 6 = Taille
+                    const nom = columns[3];
+                    const naissance = columns[4];
+                    const poids = columns[5];
+                    const taille = columns[6];
+
+                    // CONDITION : On affiche si le nom existe ET que ce n'est pas le titre "Nom Client"
+                    // Et on vérifie qu'il y a un poids (même si c'est 0) pour éviter les lignes vides
+                    if (nom && nom.toLowerCase() !== "nom client" && poids !== "" && index > 0) {
+                        eleveCount++;
                         const tr = document.createElement('tr');
-                        tr.className = "hover:bg-blue-50 transition-colors font-bold";
+                        tr.className = "hover:bg-blue-50 transition-colors";
                         tr.innerHTML = `
-                            <td class="p-4 text-slate-900 uppercase italic">${nom}</td>
-                            <td class="p-4 text-slate-400 font-normal">${c[4] || '-'}</td>
-                            <td class="p-4 text-center text-blue-600">${poids} kg</td>
-                            <td class="p-4 text-center text-slate-600">${c[6] || '-'} m</td>
-                            <td class="p-4 text-center bg-blue-50/50">-</td>
-                            <td class="p-4 text-center bg-slate-50">-</td>
-                            <td class="p-4 text-center bg-slate-50">-</td>
-                            <td class="p-4 text-center bg-slate-50">-</td>
+                            <td class="p-4 text-slate-900 uppercase italic border-r border-slate-100">${nom}</td>
+                            <td class="p-4 text-slate-400 font-normal border-r border-slate-100 text-xs">${naissance || '-'}</td>
+                            <td class="p-4 text-center text-blue-700 border-r border-slate-100">${poids} kg</td>
+                            <td class="p-4 text-center text-slate-600 border-r border-slate-100">${taille || '-'} m</td>
+                            <td class="p-4 text-center bg-blue-50/50 border-r border-slate-100 text-blue-400">-</td>
+                            <td class="p-4 text-center bg-slate-50/50 border-r border-slate-100">-</td>
+                            <td class="p-4 text-center bg-slate-50/50 border-r border-slate-100">-</td>
+                            <td class="p-4 text-center bg-slate-50/50">-</td>
                         `;
                         tbody.appendChild(tr);
                     }
                 });
 
+                document.getElementById('infoBas').innerText = eleveCount + " ÉLÈVES DÉTECTÉS";
                 document.getElementById('zoneTableau').classList.remove('hidden');
             };
             reader.readAsText(file);
