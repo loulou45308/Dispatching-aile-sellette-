@@ -2,33 +2,34 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch V40</title>
+    <title>Dispatch V41</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-10 font-sans text-slate-900">
 
     <div class="fixed top-2 left-2 z-50 flex items-center gap-2">
-        <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase tracking-widest shadow-md">Version : 40</span>
-        <button onclick="location.reload()" class="bg-red-600 text-white text-[10px] px-3 py-1 rounded font-black uppercase shadow-md">Réinitialiser</button>
+        <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase tracking-widest shadow-md">Version : 41</span>
+        <button onclick="location.reload()" class="bg-red-600 text-white text-[10px] px-3 py-1 rounded font-black uppercase shadow-md transition-transform active:scale-95">Réinitialiser</button>
+        <button id="btnDispatch" onclick="lancerDispatching()" class="hidden bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-4 py-1 rounded font-black uppercase tracking-widest shadow-lg animate-bounce">Lancer le Dispatching</button>
     </div>
 
     <div class="max-w-6xl mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-amber-50 p-4 rounded-xl shadow-sm border border-amber-200 order-first">
+                <p class="text-[10px] font-black text-amber-600 uppercase mb-2 text-center underline decoration-2">1. Fichier Parc (Indispensable)</p>
+                <input type="file" onchange="chargerParc(this)" class="text-xs w-full cursor-pointer"/>
+            </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                 <p class="text-[10px] font-black text-blue-600 uppercase mb-2 text-center">Stage 1</p>
-                <input type="file" onchange="chargerStage(this, 1)" class="text-xs w-full"/>
+                <input type="file" id="inputStage1" onchange="chargerStage(this, 1)" class="text-xs w-full"/>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                 <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 text-center">Stage 2</p>
-                <input type="file" onchange="chargerStage(this, 2)" class="text-xs w-full"/>
+                <input type="file" id="inputStage2" onchange="chargerStage(this, 2)" class="text-xs w-full"/>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                 <p class="text-[10px] font-black text-purple-600 uppercase mb-2 text-center">Stage 3</p>
-                <input type="file" onchange="chargerStage(this, 3)" class="text-xs w-full"/>
-            </div>
-            <div class="bg-amber-50 p-4 rounded-xl shadow-sm border border-amber-200">
-                <p class="text-[10px] font-black text-amber-600 uppercase mb-2 text-center">Fichier Parc</p>
-                <input type="file" onchange="chargerParc(this)" class="text-xs w-full"/>
+                <input type="file" id="inputStage3" onchange="chargerStage(this, 3)" class="text-xs w-full"/>
             </div>
         </div>
 
@@ -50,7 +51,7 @@
                         <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
                             <tr>
                                 <th class="p-4 border-r border-slate-800 text-white">Nom Pilote</th>
-                                <th class="p-4 border-r border-slate-800 text-center">Poids / Taille</th>
+                                <th class="p-4 border-r border-slate-800 text-center">Poids/Taille</th>
                                 <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile Attribuée</th>
                                 <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Selt.</th>
                                 <th class="p-4 text-center bg-slate-800 text-white">Csq / Rad</th>
@@ -60,34 +61,20 @@
                     </table>
                 </div>
             </div>
-            <div id="vueParc" class="hidden">...</div>
+
+            <div id="vueParc" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-amber-500">
+                    <p class="font-black text-amber-600 uppercase mb-4 tracking-tighter italic">Données du Parc École Chargées avec succès.</p>
+                    <p class="text-sm text-slate-500 italic">Chargez vos stages puis cliquez sur "Lancer le Dispatching" en haut à gauche.</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let memoireStages = { 1: null, 2: null, 3: null };
-        let memoireParc = { sellettes: [], voiles: [], countSelt: 0, countVoiles: 0 };
-
-        function chargerStage(input, id) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split(/\r?\n/);
-                const stage = { titre: "Stage", eleves: [] };
-                lines.forEach((line, idx) => {
-                    const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
-                    if (idx >= 1 && col[3] && col[3].toLowerCase() !== "nom client" && col[5] !== "") {
-                        if (idx === 0) stage.titre = col[0];
-                        stage.eleves.push({ nom: col[3], naissance: col[4], poids: parseFloat(col[5]), taille: parseFloat(col[6]) });
-                    }
-                });
-                memoireStages[id] = stage;
-                initialiserVue();
-                afficherOnglet(id);
-            };
-            reader.readAsText(file);
-        }
+        let memoireParc = { sellettes: [], voiles: [] };
+        let isDispatched = false;
 
         function chargerParc(input) {
             const file = input.files[0];
@@ -97,75 +84,103 @@
                 memoireParc = { sellettes: [], voiles: [] };
                 lines.forEach((line, idx) => {
                     const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
+                    // Sellettes S, M, L, XL
                     if (idx >= 2 && idx <= 5) {
-                        memoireParc.sellettes.push({ type: col[0], min: parseInt(col[2].split('/')[0]), max: parseInt(col[2].split('/')[1]), stock: parseInt(col[6]) });
+                        const t = col[2].split('/');
+                        memoireParc.sellettes.push({ type: col[0], min: parseInt(t[0]), max: parseInt(t[1]), stock: parseInt(col[6]) || 0 });
                     }
+                    // Voiles
                     if (idx >= 8 && col[0] && col[6] === "1") {
-                        const ptvMatch = col[2].match(/(\d+)-(\d+)/);
-                        memoireParc.voiles.push({ nom: col[0], rack: col[1], ptvMin: ptvMatch ? parseInt(ptvMatch[1]) : 0, ptvMax: ptvMatch ? parseInt(ptvMatch[2]) : 999, dispo: true });
+                        const ptv = col[2].match(/(\d+)-(\d+)/);
+                        memoireParc.voiles.push({ nom: col[0], rack: col[1], ptvMin: ptv?parseInt(ptv[1]):0, ptvMax: ptv?parseInt(ptv[2]):999, dispo: true });
                     }
                 });
-                initialiserVue();
-                if(memoireStages[1] || memoireStages[2] || memoireStages[3]) afficherOnglet(1);
+                document.getElementById('navTabs').classList.remove('hidden');
+                document.getElementById('zoneAffichage').classList.remove('hidden');
+                document.getElementById('btnDispatch').classList.remove('hidden');
+                afficherOnglet('parc');
             };
             reader.readAsText(file);
         }
 
-        function initialiserVue() {
-            document.getElementById('navTabs').classList.remove('hidden');
-            document.getElementById('zoneAffichage').classList.remove('hidden');
+        function chargerStage(input, id) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                const stage = { titre: "Sans titre", eleves: [] };
+                if(lines[0]) stage.titre = lines[0].split(';')[0].replace(/["']/g, "").trim();
+                lines.forEach((line, idx) => {
+                    const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
+                    if (idx >= 1 && col[3] && col[3].toLowerCase() !== "nom client" && col[5] !== "") {
+                        stage.eleves.push({ nom: col[3], poids: parseFloat(col[5]), taille: parseFloat(col[6]), voile: "-", selt: "-" });
+                    }
+                });
+                memoireStages[id] = stage;
+                document.getElementById('navTabs').classList.remove('hidden');
+                document.getElementById('zoneAffichage').classList.remove('hidden');
+                afficherOnglet(id);
+            };
+            reader.readAsText(file);
         }
 
-        function attribuerMatos(poids, taille, stockSelt, stockVoiles) {
-            // 1. Sellette
-            let seltLabel = "STOCK";
-            let seltFound = stockSelt.find(s => taille >= s.min && taille <= s.max && s.stock > 0);
-            if (seltFound) {
-                seltLabel = seltFound.type;
-                seltFound.stock--;
-            }
+        function lancerDispatching() {
+            if (memoireParc.sellettes.length === 0) return alert("Chargez d'abord le fichier Parc !");
+            
+            // On travaille sur une copie du stock pour pouvoir relancer le dispatch si besoin
+            let stockS = JSON.parse(JSON.stringify(memoireParc.sellettes));
+            let stockV = JSON.parse(JSON.stringify(memoireParc.voiles));
 
-            // 2. Voile (Poids + 17kg de marge PTV)
-            let ptvPilote = poids + 17;
-            let voileLabel = "STOCK";
-            let voileFound = stockVoiles.find(v => v.dispo && ptvPilote >= v.ptvMin && ptvPilote <= v.ptvMax);
-            if (voileFound) {
-                voileLabel = `${voileFound.nom} (R${voileFound.rack})`;
-                voileFound.dispo = false;
-            }
+            // On boucle sur les 3 stages dans l'ordre (1 puis 2 puis 3)
+            [1, 2, 3].forEach(id => {
+                if (memoireStages[id]) {
+                    memoireStages[id].eleves.forEach(el => {
+                        // 1. Sellette (Taille en cm)
+                        let tCm = el.taille * 100;
+                        let selt = stockS.find(s => tCm >= s.min && tCm <= s.max && s.stock > 0);
+                        if (selt) { el.selt = selt.type; selt.stock--; } else { el.selt = "STOCK"; }
 
-            return { selt: seltLabel, voile: voileLabel };
+                        // 2. Voile (PTV = Poids + 17kg)
+                        let ptv = el.poids + 17;
+                        let voile = stockV.find(v => v.dispo && ptv >= v.ptvMin && ptv <= v.ptvMax);
+                        if (voile) { el.voile = `${voile.nom} (R${voile.rack})`; voile.dispo = false; } else { el.voile = "STOCK"; }
+                    });
+                }
+            });
+
+            isDispatched = true;
+            document.getElementById('btnDispatch').classList.replace('animate-bounce', 'opacity-50');
+            document.getElementById('btnDispatch').innerText = "Dispatching Terminé";
+            // On affiche le premier stage chargé
+            const premier = [1,2,3].find(i => memoireStages[i]);
+            if(premier) afficherOnglet(premier);
         }
 
         function afficherOnglet(id) {
-            if (id === 'parc') { /* ... Code vue parc V39 ... */ return; }
-            
-            const data = memoireStages[id];
-            if (!data) return;
+            const btns = ['btn1', 'btn2', 'btn3', 'btnParc'];
+            btns.forEach(b => document.getElementById(b).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-slate-200 text-slate-400 hover:bg-slate-300");
+            document.getElementById('vueStage').classList.add('hidden');
+            document.getElementById('vueParc').classList.add('hidden');
 
-            // Cloner le stock pour le calcul frais à chaque affichage
-            let stockSelt = JSON.parse(JSON.stringify(memoireParc.sellettes));
-            let stockVoiles = JSON.parse(JSON.stringify(memoireParc.voiles));
-
-            document.getElementById('vueStage').classList.remove('hidden');
-            document.getElementById('titreStage').innerText = data.titre;
-            document.getElementById('nbStagiaires').innerText = data.eleves.length;
-            
-            const tbody = document.getElementById('tbodyStage');
-            tbody.innerHTML = data.eleves.map(el => {
-                const matos = attribuerMatos(el.poids, el.taille * 100, stockSelt, stockVoiles);
-                const seltColor = matos.selt === "STOCK" ? "text-red-600" : "text-black";
-                const voileColor = matos.voile === "STOCK" ? "text-red-600" : "text-blue-700";
-
-                return `
+            if (id === 'parc') {
+                document.getElementById('btnParc').className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white shadow-sm z-10";
+                document.getElementById('vueParc').classList.remove('hidden');
+            } else {
+                const data = memoireStages[id];
+                if (!data) return;
+                document.getElementById('btn' + id).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-white border-t-4 border-blue-600 text-blue-600 shadow-sm z-10";
+                document.getElementById('vueStage').classList.remove('hidden');
+                document.getElementById('titreStage').innerText = data.titre;
+                document.getElementById('nbStagiaires').innerText = data.eleves.length;
+                document.getElementById('tbodyStage').innerHTML = data.eleves.map(el => `
                     <tr class="hover:bg-blue-50 transition-colors italic text-black font-bold">
-                        <td class="p-4 border-r border-slate-100 uppercase text-slate-900">${el.nom}</td>
+                        <td class="p-4 border-r border-slate-100 font-black uppercase text-slate-900">${el.nom}</td>
                         <td class="p-4 border-r border-slate-100 text-center text-xs font-normal text-slate-500">${el.poids}kg / ${el.taille}m</td>
-                        <td class="p-4 border-r border-slate-100 text-center ${voileColor}">${matos.voile}</td>
-                        <td class="p-4 border-r border-slate-100 text-center ${seltColor}">${matos.selt}</td>
+                        <td class="p-4 border-r border-slate-100 text-center ${el.voile === 'STOCK' ? 'text-red-600' : 'text-blue-700'}">${el.voile}</td>
+                        <td class="p-4 border-r border-slate-100 text-center ${el.selt === 'STOCK' ? 'text-red-600' : 'text-slate-900'}">${el.selt}</td>
                         <td class="p-4 text-center text-slate-400 font-normal">- / -</td>
-                    </tr>`;
-            }).join('');
+                    </tr>`).join('');
+            }
         }
     </script>
 </body>
