@@ -94,3 +94,15 @@
                         `;
                         tbody.appendChild(tr);
                     }
+                });
+
+                // Mise à jour de l'affichage
+                document.getElementById('compteur').innerText = eleveCount;
+                document.getElementById('blocInfos').classList.remove('hidden');
+                document.getElementById('zoneTableau').classList.remove('hidden');
+            };
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
