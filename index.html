@@ -2,60 +2,31 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Lecteur de Stage</title>
+    <title>Dossier Complet Stage</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-8 font-sans text-slate-900">
+<body class="bg-slate-50 p-6 md:p-12 font-sans text-slate-900">
 
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         
-        <header id="headerStage" class="bg-blue-900 text-white p-6 rounded-t-2xl shadow-lg hidden">
-            <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest mb-1">DOSSIER EN COURS</p>
-            <h1 id="titreStage" class="text-3xl font-black uppercase italic">Nom du stage...</h1>
-        </header>
+        <div id="headerStage" class="hidden mb-8 text-center bg-white p-8 rounded-[2rem] shadow-xl border-b-4 border-blue-600">
+            <p class="text-xs font-bold uppercase text-slate-400 tracking-[0.3em] mb-2">DOSSIER TECHNIQUE</p>
+            <h1 id="titreStage" class="text-3xl md:text-4xl font-black uppercase text-slate-800 italic">...</h1>
+        </div>
 
-        <div class="bg-white p-8 rounded-b-2xl shadow-xl border-x border-b border-slate-200 mb-8">
-            <label class="block cursor-pointer">
-                <span class="sr-only">Charger le fichier</span>
-                <input type="file" id="inputFile" class="block w-full text-sm text-slate-500
-                  file:mr-4 file:py-3 file:px-6
-                  file:rounded-full file:border-0
-                  file:text-xs file:font-black file:uppercase
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100
-                "/>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-dashed border-slate-300 mb-8 flex items-center justify-center">
+            <label class="cursor-pointer flex flex-col items-center gap-2 group">
+                <span class="bg-blue-600 text-white px-6 py-3 rounded-full font-bold text-sm group-hover:bg-blue-700 transition-colors shadow-lg">
+                    📂 Charger "Stage init ez.csv"
+                </span>
+                <input type="file" id="inputFile" class="hidden"/>
             </label>
-            <p class="text-[10px] text-slate-400 mt-2 ml-4 italic">Sélectionne le fichier "stage init ez.csv"</p>
         </div>
 
-        <div id="zoneResultat" class="hidden bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
-            <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
-                <h2 class="font-black text-slate-800 uppercase">Liste des Pilotes</h2>
-                <span id="compteur" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">0</span>
-            </div>
-            
-            <table class="w-full text-left">
-                <thead class="bg-slate-100 text-slate-500 text-[10px] uppercase font-bold tracking-wider">
-                    <tr>
-                        <th class="p-4">Nom</th>
-                        <th class="p-4 text-center">Poids</th>
-                        <th class="p-4 text-center">Taille</th>
-                        <th class="p-4 text-center">Âge (Date Naiss.)</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                    </tbody>
-            </table>
-        </div>
-
-    </div>
-
-    <script>
-        document.getElementById('inputFile').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                const content = event.target.result;
-                const rows = content.split(/\r?\n/);
-                
-                // 1. Récupérer
+        <div id="zoneTableau" class="hidden bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-bold tracking-wider">
+                        <tr>
+                            <th class="p-5 border-r border-white/10">Pilote</th>
+                            <th class="p-5 text-center border-r border-white/10">Infos Perso</th>
