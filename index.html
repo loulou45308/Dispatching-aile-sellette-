@@ -2,85 +2,60 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Importateur Universel</title>
+    <title>Lecteur de Stage</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-8 font-sans text-slate-900">
 
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-2xl font-black mb-6 uppercase text-slate-800">Vérification Liste Stagiaires</h1>
+    <div class="max-w-3xl mx-auto">
+        
+        <header id="headerStage" class="bg-blue-900 text-white p-6 rounded-t-2xl shadow-lg hidden">
+            <p class="text-[10px] font-bold uppercase opacity-60 tracking-widest mb-1">DOSSIER EN COURS</p>
+            <h1 id="titreStage" class="text-3xl font-black uppercase italic">Nom du stage...</h1>
+        </header>
 
-        <div class="bg-white p-8 rounded-[2rem] shadow-lg border-2 border-dashed border-blue-300 text-center mb-8">
-            <label class="cursor-pointer block">
-                <span class="block text-sm font-black text-blue-600 uppercase mb-2">Charger "stage init ez.csv"</span>
-                <input type="file" id="inputFile" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700"/>
+        <div class="bg-white p-8 rounded-b-2xl shadow-xl border-x border-b border-slate-200 mb-8">
+            <label class="block cursor-pointer">
+                <span class="sr-only">Charger le fichier</span>
+                <input type="file" id="inputFile" class="block w-full text-sm text-slate-500
+                  file:mr-4 file:py-3 file:px-6
+                  file:rounded-full file:border-0
+                  file:text-xs file:font-black file:uppercase
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100
+                "/>
             </label>
+            <p class="text-[10px] text-slate-400 mt-2 ml-4 italic">Sélectionne le fichier "stage init ez.csv"</p>
         </div>
 
-        <div id="resultat" class="hidden">
-            <div class="flex justify-between items-end mb-4 px-2">
-                <h2 class="text-xl font-black uppercase">Effectif Trouvé</h2>
-                <span id="compteur" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold uppercase">0 Élèves</span>
+        <div id="zoneResultat" class="hidden bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+            <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                <h2 class="font-black text-slate-800 uppercase">Liste des Pilotes</h2>
+                <span id="compteur" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">0</span>
             </div>
-
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-bold">
-                        <tr>
-                            <th class="p-4">#</th>
-                            <th class="p-4">Nom Client</th>
-                            <th class="p-4 text-center">Poids</th>
-                            <th class="p-4 text-center">Taille</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-100 text-sm font-medium">
-                        </tbody>
-                </table>
-            </div>
+            
+            <table class="w-full text-left">
+                <thead class="bg-slate-100 text-slate-500 text-[10px] uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="p-4">Nom</th>
+                        <th class="p-4 text-center">Poids</th>
+                        <th class="p-4 text-center">Taille</th>
+                        <th class="p-4 text-center">Âge (Date Naiss.)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                    </tbody>
+            </table>
         </div>
+
     </div>
 
     <script>
         document.getElementById('inputFile').addEventListener('change', function(e) {
             const reader = new FileReader();
+            
             reader.onload = function(event) {
                 const content = event.target.result;
-                const rows = content.split(/\r?\n/); // Découpe par ligne
+                const rows = content.split(/\r?\n/);
                 
-                const tbody = document.getElementById('tbody');
-                tbody.innerHTML = '';
-                let count = 0;
-
-                // On scanne TOUTES les lignes pour trouver les vraies données
-                rows.forEach((row, index) => {
-                    // On nettoie la ligne et on découpe par point-virgule
-                    const cols = row.split(';').map(c => c.trim());
-
-                    // CRITÈRE DE DÉTECTION ROBUSTE :
-                    // 1. La colonne 3 (Nom) doit exister et ne pas être vide
-                    // 2. La colonne 3 ne doit pas être le titre "Nom Client"
-                    // 3. La colonne 5 (Poids) doit être un chiffre (ou un chiffre convertissable)
-                    
-                    const nom = cols[3]; 
-                    const poids = cols[5];
-
-                    if(nom && nom.toUpperCase() !== "NOM CLIENT" && !isNaN(parseFloat(poids))) {
-                        count++;
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-blue-50 transition-colors">
-                                <td class="p-4 text-slate-400 text-xs font-mono">${index + 1}</td> <td class="p-4 font-black text-slate-800">${nom}</td>
-                                <td class="p-4 text-center">${poids} kg</td>
-                                <td class="p-4 text-center">${cols[6]} m</td>
-                            </tr>
-                        `;
-                    }
-                });
-
-                document.getElementById('compteur').innerText = count + " Élèves";
-                document.getElementById('resultat').classList.remove('hidden');
-            };
-            reader.readAsText(e.target.files[0]);
-        });
-    </script>
-</body>
-</html>
+                // 1. Récupérer
