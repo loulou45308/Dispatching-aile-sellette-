@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch V37</title>
+    <title>Dispatch V38</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-10 font-sans text-slate-900">
 
     <div class="fixed top-2 left-2 z-50 flex items-center gap-2">
         <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase tracking-widest shadow-md">
-            Version : 37
+            Version : 38
         </span>
         <button onclick="reinitialiserTout()" class="bg-red-600 hover:bg-red-700 text-white text-[10px] px-3 py-1 rounded font-black uppercase tracking-widest shadow-md transition-colors">
             Réinitialiser
@@ -18,128 +18,165 @@
 
     <div class="max-w-6xl mx-auto">
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <p class="text-[10px] font-black text-blue-600 uppercase mb-2 text-center">Charger Stage 1</p>
+                <p class="text-[10px] font-black text-blue-600 uppercase mb-2 text-center">Stage 1</p>
                 <input type="file" onchange="chargerStage(this, 1)" class="text-xs w-full cursor-pointer"/>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 text-center">Charger Stage 2</p>
+                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 text-center">Stage 2</p>
                 <input type="file" onchange="chargerStage(this, 2)" class="text-xs w-full cursor-pointer"/>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <p class="text-[10px] font-black text-purple-600 uppercase mb-2 text-center">Charger Stage 3</p>
+                <p class="text-[10px] font-black text-purple-600 uppercase mb-2 text-center">Stage 3</p>
                 <input type="file" onchange="chargerStage(this, 3)" class="text-xs w-full cursor-pointer"/>
+            </div>
+            <div class="bg-amber-50 p-4 rounded-xl shadow-sm border border-amber-200">
+                <p class="text-[10px] font-black text-amber-600 uppercase mb-2 text-center">Parc Matériel (.csv)</p>
+                <input type="file" onchange="chargerParc(this)" class="text-xs w-full cursor-pointer"/>
             </div>
         </div>
 
         <div id="navTabs" class="hidden flex gap-1 -mb-px">
-            <button id="btn1" onclick="afficherStage(1)" class="px-6 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 1</button>
-            <button id="btn2" onclick="afficherStage(2)" class="px-6 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 2</button>
-            <button id="btn3" onclick="afficherStage(3)" class="px-6 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 3</button>
+            <button id="btn1" onclick="afficherOnglet(1)" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 1</button>
+            <button id="btn2" onclick="afficherOnglet(2)" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 2</button>
+            <button id="btn3" onclick="afficherOnglet(3)" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase transition-all">Stage 3</button>
+            <button id="btnParc" onclick="afficherOnglet('parc')" class="px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white shadow-sm ml-4">Parc École</button>
         </div>
 
         <div id="zoneAffichage" class="hidden">
-            <div class="bg-white p-4 rounded-tr-xl rounded-b-xl shadow-md border-t-4 border-blue-600 flex justify-between items-center mb-4">
-                <h1 id="titreStage" class="text-xl font-black uppercase italic text-slate-800"></h1>
-                <div class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-sm uppercase shadow-inner">
-                    <span id="nbStagiaires">0</span> Stagiaires
+            <div id="vueStage" class="hidden">
+                <div class="bg-white p-4 rounded-tr-xl rounded-b-xl shadow-md border-t-4 border-blue-600 flex justify-between items-center mb-4">
+                    <h1 id="titreStage" class="text-xl font-black uppercase italic text-slate-800"></h1>
+                    <div class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-sm uppercase">
+                        <span id="nbStagiaires">0</span> Stagiaires
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
+                            <tr>
+                                <th class="p-4 border-r border-slate-800 text-white">Nom Pilote</th>
+                                <th class="p-4 border-r border-slate-800">Naissance</th>
+                                <th class="p-4 border-r border-slate-800 text-center">Poids</th>
+                                <th class="p-4 border-r border-slate-800 text-center">Taille</th>
+                                <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile</th>
+                                <th class="p-4 text-center bg-slate-800 text-white">Selt / Csq / Rad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyStage" class="divide-y divide-slate-200 font-bold"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
-                        <tr>
-                            <th class="p-4 border-r border-slate-800 text-white">Nom Pilote</th>
-                            <th class="p-4 border-r border-slate-800">Naissance</th>
-                            <th class="p-4 border-r border-slate-800 text-center">Poids</th>
-                            <th class="p-4 border-r border-slate-800 text-center">Taille</th>
-                            <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile</th>
-                            <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Selt.</th>
-                            <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Casque</th>
-                            <th class="p-4 text-center bg-slate-800 text-white">Radio</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-200 font-bold"></tbody>
-                </table>
+            <div id="vueParc" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl shadow-lg border-t-4 border-amber-500 overflow-hidden">
+                        <div class="p-4 bg-amber-50 font-black uppercase text-sm border-b">Inventaire Sellettes</div>
+                        <table class="w-full text-sm">
+                            <tbody id="tbodySellettes" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-lg border-t-4 border-blue-500 overflow-hidden">
+                        <div class="p-4 bg-blue-50 font-black uppercase text-sm border-b">Voiles Disponibles (Rack)</div>
+                        <table class="w-full text-sm">
+                            <tbody id="tbodyVoiles" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         let memoireStages = { 1: null, 2: null, 3: null };
+        let memoireParc = { sellettes: [], voiles: [] };
 
         function chargerStage(input, id) {
             const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const lines = e.target.result.split(/\r?\n/);
                 const stage = { titre: "Sans titre", eleves: [] };
-
                 if(lines[0]) stage.titre = lines[0].split(';')[0].replace(/["']/g, "").trim();
-
                 lines.forEach((line, idx) => {
                     const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
-                    if (idx >= 1 && col.length >= 6) {
-                        const nom = col[3];
-                        const poids = col[5];
-                        if (nom && nom.toLowerCase() !== "nom client" && poids !== "" && !isNaN(parseFloat(poids))) {
-                            stage.eleves.push({ nom, naissance: col[4], poids, taille: col[6] });
-                        }
+                    if (idx >= 1 && col.length >= 6 && col[3] && col[3].toLowerCase() !== "nom client" && col[5] !== "") {
+                        stage.eleves.push({ nom: col[3], naissance: col[4], poids: col[5], taille: col[6] });
                     }
                 });
-
                 memoireStages[id] = stage;
                 document.getElementById('navTabs').classList.remove('hidden');
                 document.getElementById('zoneAffichage').classList.remove('hidden');
-                afficherStage(id);
+                afficherOnglet(id);
             };
             reader.readAsText(file);
         }
 
-        function afficherStage(id) {
-            const data = memoireStages[id];
-            if (!data) return;
+        function chargerParc(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                memoireParc = { sellettes: [], voiles: [] };
 
-            // Gestion des styles d'onglets
-            for(let i=1; i<=3; i++) {
-                const btn = document.getElementById('btn' + i);
-                if(i === id) {
-                    btn.className = "px-6 py-3 rounded-t-xl font-black text-xs uppercase bg-white border-t-4 border-blue-600 text-blue-600 shadow-sm z-10";
-                } else {
-                    btn.className = "px-6 py-3 rounded-t-xl font-black text-xs uppercase bg-slate-200 text-slate-400 hover:bg-slate-300";
-                }
-            }
+                lines.forEach((line, idx) => {
+                    const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
+                    // Sellettes (Lignes 3 à 6 du CSV)
+                    if (idx >= 2 && idx <= 5 && col[0]) {
+                        memoireParc.sellettes.push({ type: col[0], cm: col[2], stock: col[6] });
+                    }
+                    // Voiles (Lignes 9+) : On prend si col[6] == "1"
+                    if (idx >= 8 && col[0] && col[6] === "1") {
+                        memoireParc.voiles.push({ nom: col[0], rack: col[1], ptv: col[2], color: col[4] });
+                    }
+                });
+                document.getElementById('navTabs').classList.remove('hidden');
+                document.getElementById('zoneAffichage').classList.remove('hidden');
+                afficherOnglet('parc');
+            };
+            reader.readAsText(file);
+        }
 
-            document.getElementById('titreStage').innerText = data.titre;
-            document.getElementById('nbStagiaires').innerText = data.eleves.length;
+        function afficherOnglet(id) {
+            const btns = ['btn1', 'btn2', 'btn3', 'btnParc'];
+            btns.forEach(b => document.getElementById(b).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-slate-200 text-slate-400 hover:bg-slate-300");
             
-            const tbody = document.getElementById('tbody');
-            tbody.innerHTML = '';
-            data.eleves.forEach(el => {
-                tbody.innerHTML += `
+            document.getElementById('vueStage').classList.add('hidden');
+            document.getElementById('vueParc').classList.add('hidden');
+
+            if (id === 'parc') {
+                document.getElementById('btnParc').className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white shadow-sm z-10";
+                document.getElementById('vueParc').classList.remove('hidden');
+                const tS = document.getElementById('tbodySellettes');
+                tS.innerHTML = memoireParc.sellettes.map(s => `<tr><td class="p-3 font-black text-amber-700">Taille ${s.type}</td><td class="p-3 text-slate-500">${s.cm} cm</td><td class="p-3 text-right font-black">${s.stock} dispo</td></tr>`).join('');
+                const tV = document.getElementById('tbodyVoiles');
+                tV.innerHTML = memoireParc.voiles.map(v => `<tr><td class="p-3 font-black text-blue-800">${v.nom}</td><td class="p-3 text-xs text-slate-400">Rack ${v.rack}</td><td class="p-3 text-center text-xs font-bold text-black">PTV ${v.ptv}</td><td class="p-3 text-right italic text-xs">${v.color}</td></tr>`).join('');
+            } else {
+                const data = memoireStages[id];
+                if (!data) return;
+                document.getElementById('btn' + id).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-white border-t-4 border-blue-600 text-blue-600 shadow-sm z-10";
+                document.getElementById('vueStage').classList.remove('hidden');
+                document.getElementById('titreStage').innerText = data.titre;
+                document.getElementById('nbStagiaires').innerText = data.eleves.length;
+                document.getElementById('tbodyStage').innerHTML = data.eleves.map(el => `
                     <tr class="hover:bg-blue-50 transition-colors italic text-black font-bold">
                         <td class="p-4 border-r border-slate-100 font-black uppercase text-slate-900">${el.nom}</td>
-                        <td class="p-4 border-r border-slate-100 text-xs">${el.naissance || '-'}</td>
+                        <td class="p-4 border-r border-slate-100 text-xs">${el.naissance}</td>
                         <td class="p-4 border-r border-slate-100 text-center">${el.poids} kg</td>
-                        <td class="p-4 border-r border-slate-100 text-center">${el.taille || '-'} m</td>
+                        <td class="p-4 border-r border-slate-100 text-center">${el.taille} m</td>
                         <td class="p-4 border-r border-slate-100 text-center bg-blue-50/50 text-blue-400 font-black">-</td>
-                        <td class="p-4 border-r border-slate-100 text-center bg-slate-50">-</td>
-                        <td class="p-4 border-r border-slate-100 text-center bg-slate-50">-</td>
-                        <td class="p-4 text-center bg-slate-50">-</td>
-                    </tr>`;
-            });
+                        <td class="p-4 text-center bg-slate-50">- / - / -</td>
+                    </tr>`).join('');
+            }
         }
 
         function reinitialiserTout() {
             memoireStages = { 1: null, 2: null, 3: null };
-            const inputs = document.querySelectorAll('input[type="file"]');
-            inputs.forEach(i => i.value = "");
-            document.getElementById('navTabs').classList.add('hidden');
-            document.getElementById('zoneAffichage').classList.add('hidden');
+            memoireParc = { sellettes: [], voiles: [] };
+            location.reload();
         }
     </script>
 </body>
