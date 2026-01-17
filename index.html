@@ -2,110 +2,85 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch V31</title>
+    <title>Dispatch Multi-Stages V33</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-10 font-sans text-slate-900">
 
     <div class="fixed top-2 left-2 z-50">
         <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase tracking-widest shadow-md">
-            Version : 31
+            Version : 33
         </span>
     </div>
 
     <div class="max-w-6xl mx-auto">
         
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center mb-8">
-            <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Étape 1 : Charger le fichier stage</p>
-            <input type="file" id="inputFile" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
-        </div>
-
-        <div id="blocInfos" class="hidden flex flex-wrap items-center justify-between gap-4 mb-4 bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600">
-            <h1 id="titreStage" class="text-xl font-black uppercase italic text-slate-800"></h1>
-            <div class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-black text-sm uppercase">
-                <span id="compteur">0</span> Stagiaires
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                <p class="text-[10px] font-black text-blue-600 uppercase mb-2">Stage n°1</p>
+                <input type="file" id="file1" class="text-xs w-full cursor-pointer"/>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2">Stage n°2</p>
+                <input type="file" id="file2" class="text-xs w-full cursor-pointer"/>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                <p class="text-[10px] font-black text-purple-600 uppercase mb-2">Stage n°3</p>
+                <input type="file" id="file3" class="text-xs w-full cursor-pointer"/>
             </div>
         </div>
 
-        <div id="zoneTableau" class="hidden bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
-                        <tr>
-                            <th class="p-4 border-r border-slate-800 text-white">Nom Pilote</th>
-                            <th class="p-4 border-r border-slate-800">Date Naissance</th>
-                            <th class="p-4 border-r border-slate-800 text-center w-24">Poids</th>
-                            <th class="p-4 border-r border-slate-800 text-center w-24">Taille</th>
-                            <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile</th>
-                            <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Selt.</th>
-                            <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Casque</th>
-                            <th class="p-4 text-center bg-slate-800 text-white">Radio</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-200 font-bold">
-                    </tbody>
-                </table>
+        <div id="navOnglets" class="hidden flex gap-2 mb-4">
+            <button onclick="switchStage(1)" id="btnTab1" class="px-6 py-3 rounded-t-xl font-black uppercase text-xs border-b-4 border-blue-600 bg-white text-blue-600 shadow-sm">Stage 1</button>
+            <button onclick="switchStage(2)" id="btnTab2" class="px-6 py-3 rounded-t-xl font-black uppercase text-xs border-b-4 border-transparent bg-slate-200 text-slate-500 hover:bg-white transition-all">Stage 2</button>
+            <button onclick="switchStage(3)" id="btnTab3" class="px-6 py-3 rounded-t-xl font-black uppercase text-xs border-b-4 border-transparent bg-slate-200 text-slate-500 hover:bg-white transition-all">Stage 3</button>
+        </div>
+
+        <div id="zoneData" class="hidden">
+            <div class="bg-white p-4 rounded-tr-xl rounded-b-xl shadow-sm border-l-4 border-blue-600 flex justify-between items-center mb-4">
+                <h1 id="displayTitre" class="text-xl font-black uppercase italic text-slate-800 italic truncate mr-4">Sélectionnez un stage</h1>
+                <div class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-black text-sm uppercase whitespace-nowrap">
+                    <span id="displayCompteur">0</span> Stagiaires
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900 text-slate-400 uppercase font-black text-[10px] tracking-widest">
+                            <tr>
+                                <th class="p-4 border-r border-slate-800 text-white">Nom Pilote</th>
+                                <th class="p-4 border-r border-slate-800">Naissance</th>
+                                <th class="p-4 border-r border-slate-800 text-center">Poids</th>
+                                <th class="p-4 border-r border-slate-800 text-center">Taille</th>
+                                <th class="p-4 border-r border-slate-800 text-center bg-blue-900 text-white">Voile</th>
+                                <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Selt.</th>
+                                <th class="p-4 border-r border-slate-800 text-center bg-slate-800 text-white">Casque</th>
+                                <th class="p-4 text-center bg-slate-800 text-white">Radio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody" class="divide-y divide-slate-200 font-bold"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
+
     </div>
 
     <script>
-        document.getElementById('inputFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        // Objet pour stocker les données des 3 stages
+        const stagesData = {
+            1: { titre: "", elever: [], count: 0 },
+            2: { titre: "", elever: [], count: 0 },
+            3: { titre: "", elever: [], count: 0 }
+        };
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const text = event.target.result;
-                const lines = text.split(/\r?\n/);
-                const tbody = document.getElementById('tbody');
-                tbody.innerHTML = '';
-                let eleveCount = 0;
+        let activeStage = 1;
 
-                // Extraction du titre (Ligne 1)
-                if (lines[0]) {
-                    const titre = lines[0].split(';')[0].replace(/["']/g, "").trim();
-                    document.getElementById('titreStage').innerText = titre;
-                }
+        // Gestionnaire pour les 3 inputs
+        [1, 2, 3].forEach(num => {
+            document.getElementById(`file${num}`).addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
 
-                lines.forEach((line, index) => {
-                    // Split par point-virgule et nettoyage de chaque cellule
-                    const columns = line.split(';').map(c => c.trim().replace(/["']/g, ""));
-
-                    // On vérifie que la ligne a assez de colonnes
-                    if (columns.length >= 6) {
-                        const nom = columns[3];
-                        const naissance = columns[4];
-                        const poidsStr = columns[5];
-                        const taille = columns[6];
-
-                        // CRITÈRE : Nom non vide + Nom n'est pas "Nom Client" + Poids est un nombre
-                        const poids = parseFloat(poidsStr);
-                        if (nom && nom.toLowerCase() !== "nom client" && !isNaN(poids)) {
-                            eleveCount++;
-                            const tr = document.createElement('tr');
-                            tr.className = "hover:bg-blue-50 transition-colors";
-                            tr.innerHTML = `
-                                <td class="p-4 text-slate-900 uppercase italic border-r border-slate-100">${nom}</td>
-                                <td class="p-4 text-slate-400 font-normal border-r border-slate-100 text-xs">${naissance || '-'}</td>
-                                <td class="p-4 text-center text-blue-700 border-r border-slate-100">${poidsStr} kg</td>
-                                <td class="p-4 text-center text-slate-600 border-r border-slate-100">${taille || '-'} m</td>
-                                <td class="p-4 text-center bg-blue-50/50 border-r border-slate-100 text-blue-400 font-black">-</td>
-                                <td class="p-4 text-center bg-slate-50/50 border-r border-slate-100">-</td>
-                                <td class="p-4 text-center bg-slate-50/50 border-r border-slate-100">-</td>
-                                <td class="p-4 text-center bg-slate-50/50">-</td>
-                            `;
-                            tbody.appendChild(tr);
-                        }
-                    }
-                });
-
-                document.getElementById('compteur').innerText = eleveCount;
-                document.getElementById('blocInfos').classList.remove('hidden');
-                document.getElementById('zoneTableau').classList.remove('hidden');
-            };
-            reader.readAsText(file);
-        });
-    </script>
-</body>
-</html>
+                const reader = new
