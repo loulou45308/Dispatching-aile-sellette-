@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch V38</title>
+    <title>Dispatch V39</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 p-4 md:p-10 font-sans text-slate-900">
 
     <div class="fixed top-2 left-2 z-50 flex items-center gap-2">
         <span class="bg-black text-white text-[10px] px-3 py-1 rounded font-mono uppercase tracking-widest shadow-md">
-            Version : 38
+            Version : 39
         </span>
         <button onclick="reinitialiserTout()" class="bg-red-600 hover:bg-red-700 text-white text-[10px] px-3 py-1 rounded font-black uppercase tracking-widest shadow-md transition-colors">
             Réinitialiser
@@ -32,7 +32,7 @@
                 <input type="file" onchange="chargerStage(this, 3)" class="text-xs w-full cursor-pointer"/>
             </div>
             <div class="bg-amber-50 p-4 rounded-xl shadow-sm border border-amber-200">
-                <p class="text-[10px] font-black text-amber-600 uppercase mb-2 text-center">Parc Matériel (.csv)</p>
+                <p class="text-[10px] font-black text-amber-600 uppercase mb-2 text-center">Fichier Parc (.csv)</p>
                 <input type="file" onchange="chargerParc(this)" class="text-xs w-full cursor-pointer"/>
             </div>
         </div>
@@ -70,17 +70,33 @@
             </div>
 
             <div id="vueParc" class="hidden">
+                <div class="bg-white p-4 rounded-tr-xl rounded-b-xl shadow-md border-t-4 border-amber-500 flex justify-between items-center mb-6">
+                    <h1 class="text-xl font-black uppercase italic text-slate-800">Inventaire Parc École</h1>
+                    <div class="flex gap-2">
+                        <div class="bg-amber-100 text-amber-700 px-4 py-2 rounded-lg font-black text-xs uppercase">
+                            <span id="totalSelt">0</span> Sellettes
+                        </div>
+                        <div class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-black text-xs uppercase">
+                            <span id="totalVoiles">0</span> Voiles
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-2xl shadow-lg border-t-4 border-amber-500 overflow-hidden">
-                        <div class="p-4 bg-amber-50 font-black uppercase text-sm border-b">Inventaire Sellettes</div>
+                    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                         <table class="w-full text-sm">
+                            <thead class="bg-amber-500 text-white uppercase text-[10px] font-black tracking-widest">
+                                <tr><th colspan="3" class="p-3">Détail Sellettes</th></tr>
+                            </thead>
                             <tbody id="tbodySellettes" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-lg border-t-4 border-blue-500 overflow-hidden">
-                        <div class="p-4 bg-blue-50 font-black uppercase text-sm border-b">Voiles Disponibles (Rack)</div>
+                    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                         <table class="w-full text-sm">
-                            <tbody id="tbodyVoiles" class="divide-y divide-slate-100"></tbody>
+                            <thead class="bg-blue-600 text-white uppercase text-[10px] font-black tracking-widest">
+                                <tr><th colspan="4" class="p-3">Voiles en Rack (Dispo)</th></tr>
+                            </thead>
+                            <tbody id="tbodyVoiles" class="divide-y divide-slate-100 font-bold"></tbody>
                         </table>
                     </div>
                 </div>
@@ -90,7 +106,7 @@
 
     <script>
         let memoireStages = { 1: null, 2: null, 3: null };
-        let memoireParc = { sellettes: [], voiles: [] };
+        let memoireParc = { sellettes: [], voiles: [], countSelt: 0, countVoiles: 0 };
 
         function chargerStage(input, id) {
             const file = input.files[0];
@@ -107,8 +123,7 @@
                     }
                 });
                 memoireStages[id] = stage;
-                document.getElementById('navTabs').classList.remove('hidden');
-                document.getElementById('zoneAffichage').classList.remove('hidden');
+                initialiserVue();
                 afficherOnglet(id);
             };
             reader.readAsText(file);
@@ -120,40 +135,47 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const lines = e.target.result.split(/\r?\n/);
-                memoireParc = { sellettes: [], voiles: [] };
+                memoireParc = { sellettes: [], voiles: [], countSelt: 0, countVoiles: 0 };
 
                 lines.forEach((line, idx) => {
                     const col = line.split(';').map(c => c.trim().replace(/["']/g, ""));
-                    // Sellettes (Lignes 3 à 6 du CSV)
+                    // Sellettes (Lignes 3 à 6)
                     if (idx >= 2 && idx <= 5 && col[0]) {
-                        memoireParc.sellettes.push({ type: col[0], cm: col[2], stock: col[6] });
+                        const qte = parseInt(col[6]) || 0;
+                        memoireParc.sellettes.push({ type: col[0], cm: col[2], stock: qte });
+                        memoireParc.countSelt += qte;
                     }
-                    // Voiles (Lignes 9+) : On prend si col[6] == "1"
+                    // Voiles (Lignes 9+)
                     if (idx >= 8 && col[0] && col[6] === "1") {
                         memoireParc.voiles.push({ nom: col[0], rack: col[1], ptv: col[2], color: col[4] });
+                        memoireParc.countVoiles++;
                     }
                 });
-                document.getElementById('navTabs').classList.remove('hidden');
-                document.getElementById('zoneAffichage').classList.remove('hidden');
+                initialiserVue();
                 afficherOnglet('parc');
             };
             reader.readAsText(file);
         }
 
+        function initialiserVue() {
+            document.getElementById('navTabs').classList.remove('hidden');
+            document.getElementById('zoneAffichage').classList.remove('hidden');
+        }
+
         function afficherOnglet(id) {
             const btns = ['btn1', 'btn2', 'btn3', 'btnParc'];
             btns.forEach(b => document.getElementById(b).className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-slate-200 text-slate-400 hover:bg-slate-300");
-            
             document.getElementById('vueStage').classList.add('hidden');
             document.getElementById('vueParc').classList.add('hidden');
 
             if (id === 'parc') {
                 document.getElementById('btnParc').className = "px-4 py-3 rounded-t-xl font-black text-xs uppercase bg-amber-500 text-white shadow-sm z-10";
                 document.getElementById('vueParc').classList.remove('hidden');
-                const tS = document.getElementById('tbodySellettes');
-                tS.innerHTML = memoireParc.sellettes.map(s => `<tr><td class="p-3 font-black text-amber-700">Taille ${s.type}</td><td class="p-3 text-slate-500">${s.cm} cm</td><td class="p-3 text-right font-black">${s.stock} dispo</td></tr>`).join('');
-                const tV = document.getElementById('tbodyVoiles');
-                tV.innerHTML = memoireParc.voiles.map(v => `<tr><td class="p-3 font-black text-blue-800">${v.nom}</td><td class="p-3 text-xs text-slate-400">Rack ${v.rack}</td><td class="p-3 text-center text-xs font-bold text-black">PTV ${v.ptv}</td><td class="p-3 text-right italic text-xs">${v.color}</td></tr>`).join('');
+                document.getElementById('totalSelt').innerText = memoireParc.countSelt;
+                document.getElementById('totalVoiles').innerText = memoireParc.countVoiles;
+
+                document.getElementById('tbodySellettes').innerHTML = memoireParc.sellettes.map(s => `<tr><td class="p-3 font-black text-amber-700 uppercase">Taille ${s.type}</td><td class="p-3 text-slate-600 text-xs">${s.cm} cm</td><td class="p-3 text-right font-black text-black">${s.stock} en stock</td></tr>`).join('');
+                document.getElementById('tbodyVoiles').innerHTML = memoireParc.voiles.map(v => `<tr class="text-black"><td class="p-3 uppercase">${v.nom}</td><td class="p-3 text-xs text-blue-600 font-black italic text-center">Rack ${v.rack}</td><td class="p-3 text-center text-xs">PTV ${v.ptv}</td><td class="p-3 text-right italic text-[10px] text-slate-400">${v.color}</td></tr>`).join('');
             } else {
                 const data = memoireStages[id];
                 if (!data) return;
@@ -174,8 +196,6 @@
         }
 
         function reinitialiserTout() {
-            memoireStages = { 1: null, 2: null, 3: null };
-            memoireParc = { sellettes: [], voiles: [] };
             location.reload();
         }
     </script>
