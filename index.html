@@ -2,65 +2,65 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch Opérationnel</title>
+    <title>Chargement Immédiat Parc</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-8 font-sans">
-    <div class="max-w-4xl mx-auto space-y-6">
-        
-        <div class="grid grid-cols-5 gap-4">
-            <div class="bg-black text-blue-400 p-4 rounded-xl shadow-xl text-center">
-                <span class="block text-[10px] uppercase font-bold">Voiles</span>
-                <span id="resVoiles" class="text-3xl font-black">0</span>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <span class="block text-[10px] text-slate-400 uppercase font-bold">S</span>
-                <span id="resS" class="text-xl font-bold">0</span>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <span class="block text-[10px] text-slate-400 uppercase font-bold">M</span>
-                <span id="resM" class="text-xl font-bold">0</span>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <span class="block text-[10px] text-slate-400 uppercase font-bold">L</span>
-                <span id="resL" class="text-xl font-bold">0</span>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm text-center border">
-                <span class="block text-[10px] text-slate-400 uppercase font-bold">XL</span>
-                <span id="resXL" class="text-xl font-bold">0</span>
-            </div>
+<body class="bg-slate-100 p-4 md:p-10 font-sans">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-tighter">Gestionnaire de Parc École</h1>
+
+        <div class="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-dashed border-blue-200 text-center mb-10">
+            <label for="inputParc" class="cursor-pointer group">
+                <div class="bg-blue-600 group-hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black uppercase text-sm inline-block transition-all shadow-lg active:scale-95 mb-4">
+                    📁 Sélectionner le fichier Excel (CSV)
+                </div>
+                <p class="text-slate-400 text-xs font-bold uppercase">Cliquez ici pour charger "parc facile.csv"</p>
+            </label>
+            <input type="file" id="inputParc" class="hidden" accept=".csv">
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white p-4 rounded-xl border-2 border-dashed">
-                <p class="text-[10px] font-bold uppercase mb-2">1. Parc (parc facile.csv)</p>
-                <input type="file" id="fileParc" class="text-xs">
+        <div id="zoneAffichage" class="hidden space-y-8">
+            
+            <div class="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl">
+                <h2 class="text-blue-400 font-black uppercase text-xs mb-6 tracking-widest">Inventaire Sellettes</h2>
+                <div id="listeSellettes" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    </div>
             </div>
-            <div class="bg-white p-4 rounded-xl border-2 border-dashed">
-                <p class="text-[10px] font-bold uppercase mb-2">2. Stage (Stage init 1.csv)</p>
-                <input type="file" id="fileStage" class="text-xs">
-            </div>
-        </div>
 
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
-                <span id="resStags" class="font-bold text-slate-600 uppercase text-xs">0 Stagiaires</span>
-                <button id="btnRun" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-black text-xs uppercase shadow-lg hover:bg-blue-700 transition-all">Lancer l'attribution</button>
+            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
+                <div class="bg-slate-50 p-6 border-b">
+                    <h2 class="text-slate-800 font-black uppercase text-xs tracking-widest">Inventaire Voiles</h2>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-100 text-slate-400 text-[10px] font-black uppercase">
+                        <tr>
+                            <th class="p-4">Numéro Voile</th>
+                            <th class="p-4 text-center">Plage de Poids (PTV)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listeVoiles" class="divide-y divide-slate-100 font-bold text-slate-700">
+                        </tbody>
+                </table>
             </div>
-            <table class="w-full text-left">
-                <thead class="bg-slate-900 text-white/50 text-[9px] uppercase font-bold">
-                    <tr>
-                        <th class="p-4">Nom</th>
-                        <th class="p-4 text-center">Poids</th>
-                        <th class="p-4 text-center bg-blue-800 text-white">Voile</th>
-                        <th class="p-4 text-center bg-slate-800 text-white">Selt.</th>
-                    </tr>
-                </thead>
-                <tbody id="liste" class="divide-y text-xs font-bold uppercase italic"></tbody>
-            </table>
+
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, writeBatch, updateDoc, query, orderBy } from "https
+    <script>
+        document.getElementById('inputParc').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                // Détection automatique du séparateur (virgule ou point-virgule)
+                const separator = content.includes(';') ? ';' : ',';
+                const lines = content.split(/\r?\n/);
+
+                const listSellettes = document.getElementById('listeSellettes');
+                const listVoiles = document.getElementById('listeVoiles');
+                
+                listSellettes.innerHTML = '';
+                listVo
