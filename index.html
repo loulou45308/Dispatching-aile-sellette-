@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dispatch V45 - PDF Ready</title>
+    <title>Dispatch V46 - Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -15,14 +15,13 @@
 <body class="bg-slate-50 min-h-screen text-slate-900 pb-20">
 
     <nav class="sticky top-0 z-50 glass border-b border-slate-200 px-6 py-3 mb-8 shadow-sm">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <div class="flex flex-col">
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Parapente Dispatch</span>
-                    <span class="text-xs font-bold text-slate-900">VERSION 45</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Dispatch System</span>
+                    <span class="text-xs font-bold text-slate-900">VERSION 46</span>
                 </div>
-                <div class="h-8 w-[1px] bg-slate-200"></div>
-                <button id="btnDispatch" onclick="lancerDispatching()" class="bg-slate-200 text-slate-500 cursor-not-allowed px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all shadow-sm">
+                <button id="btnDispatch" onclick="lancerDispatching()" class="bg-slate-200 text-slate-500 px-6 py-2 rounded-full text-[11px] font-black uppercase transition-all shadow-sm">
                     Charger le parc
                 </button>
             </div>
@@ -31,10 +30,10 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-amber-50 p-6 rounded-3xl border-2 border-dashed border-amber-200">
-                <p class="text-[10px] font-black text-amber-600 uppercase mb-2">1. Parc École</p>
-                <input type="file" onchange="chargerParc(this)" class="block w-full text-xs file:bg-amber-500 file:text-white file:rounded-full file:border-0 file:px-4 file:py-1 cursor-pointer"/>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 text-center">
+            <div class="bg-amber-100 p-6 rounded-3xl border border-amber-300">
+                <p class="text-[10px] font-black text-amber-600 uppercase mb-2">1. Fichier Parc</p>
+                <input type="file" onchange="chargerParc(this)" class="text-xs w-full cursor-pointer"/>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm"><p class="text-[10px] font-black text-blue-500 uppercase mb-2">Stage 1</p><input type="file" onchange="chargerStage(this, 1)" class="text-xs w-full"/></div>
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm"><p class="text-[10px] font-black text-emerald-500 uppercase mb-2">Stage 2</p><input type="file" onchange="chargerStage(this, 2)" class="text-xs w-full"/></div>
@@ -42,21 +41,19 @@
         </div>
 
         <div id="navTabs" class="hidden flex gap-2 mb-4">
-            <button id="btn1" onclick="afficherOnglet(1)" class="px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest transition-all">Stage 1</button>
-            <button id="btn2" onclick="afficherOnglet(2)" class="px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest transition-all">Stage 2</button>
-            <button id="btn3" onclick="afficherOnglet(3)" class="px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest transition-all">Stage 3</button>
-            <button id="btnParc" onclick="afficherOnglet('parc')" class="ml-auto px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase tracking-widest bg-amber-500 text-white shadow-lg">Inventaire</button>
+            <button id="btn1" onclick="afficherOnglet(1)" class="px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase transition-all">Stage 1</button>
+            <button id="btn2" onclick="afficherOnglet(2)" class="px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase transition-all">Stage 2</button>
+            <button id="btn3" onclick="afficherOnglet(3)" class="px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase transition-all">Stage 3</button>
+            <button id="btnParc" onclick="afficherOnglet('parc')" class="ml-auto px-6 py-3 rounded-t-2xl font-black text-[11px] uppercase bg-amber-500 text-white">Inventaire Parc</button>
         </div>
 
         <div id="zoneAffichage" class="hidden">
             <div id="vueStage" class="hidden">
                 <div class="bg-white p-8 rounded-b-3xl rounded-tr-3xl shadow-xl border border-slate-200">
                     <div class="flex justify-between items-center mb-8 border-b pb-6">
-                        <div>
-                            <h1 id="titreStage" class="text-2xl font-black italic uppercase text-slate-900"></h1>
-                        </div>
-                        <button id="btnExportPDF" onclick="genererPDF()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all">
-                            Exporter la Fiche (PDF)
+                        <h1 id="titreStage" class="text-2xl font-black italic uppercase text-slate-900 tracking-tighter"></h1>
+                        <button onclick="genererPDF()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full text-[11px] font-black uppercase shadow-lg transition-transform active:scale-95">
+                            📄 Imprimer Fiche (Paysage)
                         </button>
                     </div>
 
@@ -65,10 +62,9 @@
                             <tr class="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b">
                                 <th class="pb-4 text-left">Pilote</th>
                                 <th class="pb-4 text-center">Poids/Taille</th>
-                                <th class="pb-4 text-center text-blue-600">Voile (Rack)</th>
+                                <th class="pb-4 text-center bg-blue-50 text-blue-600 rounded-t-lg">Voile (Rack)</th>
                                 <th class="pb-4 text-center">Sellette</th>
-                                <th class="pb-4 text-center">Casque</th>
-                                <th class="pb-4 text-center">Radio</th>
+                                <th class="pb-4 text-center">Observations</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyStage"></tbody>
@@ -77,8 +73,8 @@
             </div>
 
             <div id="vueParc" class="hidden">
-                <div class="bg-amber-600 p-10 rounded-[3rem] text-white shadow-2xl">
-                    <h2 class="text-3xl font-black uppercase italic mb-2">Inventaire Prêt</h2>
+                <div class="bg-amber-600 p-10 rounded-3xl text-white shadow-xl">
+                    <h2 class="text-3xl font-black uppercase italic mb-2 tracking-widest">Matériel Opérationnel</h2>
                     <p id="statutMatos" class="text-amber-100 font-bold text-lg"></p>
                 </div>
             </div>
@@ -108,8 +104,8 @@
                         memoireParc.totalV++;
                     }
                 });
-                document.getElementById('statutMatos').innerText = `${memoireParc.totalV} Voiles et ${memoireParc.totalS} Sellettes.`;
-                document.getElementById('btnDispatch').className = "bg-blue-600 text-white px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-wider animate-pulse cursor-pointer";
+                document.getElementById('statutMatos').innerText = `${memoireParc.totalV} Voiles & ${memoireParc.totalS} Sellettes prêtes.`;
+                document.getElementById('btnDispatch').className = "bg-blue-600 text-white px-6 py-2 rounded-full text-[11px] font-black uppercase animate-pulse cursor-pointer";
                 document.getElementById('btnDispatch').innerText = "Lancer le Dispatching";
                 document.getElementById('navTabs').classList.remove('hidden');
                 document.getElementById('zoneAffichage').classList.remove('hidden');
@@ -133,7 +129,7 @@
                 memoireStages[id] = stage;
                 document.getElementById('navTabs').classList.remove('hidden');
                 document.getElementById('zoneAffichage').classList.remove('hidden');
-                afficherOnglet(id);
+                if(memoireParc.totalV > 0) afficherOnglet(id);
             };
             reader.readAsText(input.files[0]);
         }
@@ -146,7 +142,7 @@
                 memoireStages[id].eleves.forEach(el => {
                     let selt = sS.find(s => (el.taille*100) >= s.min && (el.taille*100) <= s.max && s.stock > 0);
                     if (selt) { el.selt = selt.type; selt.stock--; } else el.selt = "STOCK";
-                    let ptv = el.poids + 12;
+                    let ptv = el.poids + 12; // Poids + 12kg
                     let v = sV.find(v => v.dispo && ptv >= v.ptvMin && ptv <= v.ptvMax);
                     if (!v) { v = sV.find(v => v.dispo && ptv >= (v.ptvMin-5) && ptv <= (v.ptvMax+5)); if(v) el.limite = true; }
                     if (v) { el.voile = v.nom; el.rack = v.rack; v.dispo = false; } else el.voile = "STOCK";
@@ -174,56 +170,55 @@
                 document.getElementById('vueStage').classList.remove('hidden');
                 document.getElementById('titreStage').innerText = d.titre;
                 document.getElementById('tbodyStage').innerHTML = d.eleves.map(el => `
-                    <tr class="border-b border-slate-50">
-                        <td class="p-4 font-black uppercase ${el.limite?'text-red-600':''}">${el.nom}</td>
+                    <tr class="border-b border-slate-50 font-bold">
+                        <td class="p-4 uppercase ${el.limite?'text-red-600':''}">${el.nom}</td>
                         <td class="p-4 text-center text-slate-400 text-xs">${el.poids}kg/${el.taille}m</td>
-                        <td class="p-4 text-center font-black ${el.voile==='STOCK'?'text-red-600':'text-blue-700'}">${el.voile} ${el.rack!=='-'?'(R'+el.rack+')':''}</td>
-                        <td class="p-4 text-center font-black">${el.selt}</td>
-                        <td class="p-4 border-l border-slate-100 italic text-slate-300 text-center">...</td>
-                        <td class="p-4 border-l border-slate-100 italic text-slate-300 text-center">...</td>
+                        <td class="p-4 text-center bg-blue-50/30 ${el.voile==='STOCK'?'text-red-600':'text-blue-700'}">${el.voile} ${el.rack!=='-'?'(R'+el.rack+')':''}</td>
+                        <td class="p-4 text-center ${el.selt==='STOCK'?'text-red-600':'text-slate-900'}">${el.selt}</td>
+                        <td class="p-4 text-center text-[10px] italic ${el.limite?'text-red-500':'text-slate-300'}">${el.limite?'⚠️ HORS PTV (+/- 5KG)':'-'}</td>
                     </tr>`).join('');
             }
         }
 
         function genererPDF() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const doc = new jsPDF('l', 'mm', 'a4'); // 'l' pour Paysage
             const stage = memoireStages[ongletActif];
             
-            // Header
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.setFont("helvetica", "bold");
-            doc.text("FICHE DE STAGE - DISPATCHING", 14, 20);
-            doc.setFontSize(12);
+            doc.text(`FICHE DE DISPATCH : ${stage.titre.toUpperCase()}`, 14, 20);
+            
+            doc.setFontSize(10);
             doc.setTextColor(100);
-            doc.text(`Stage : ${stage.titre}`, 14, 30);
+            doc.text("Généré le : " + new Date().toLocaleDateString(), 14, 28);
 
-            // Tableau
             const rows = stage.eleves.map(el => [
                 el.nom.toUpperCase(),
-                `${el.voile} (Rack ${el.rack})`,
+                el.voile === "STOCK" ? "A VOIR" : `${el.voile} (Rack ${el.rack})`,
                 el.selt,
                 "", // Casque
                 ""  // Radio
             ]);
 
             doc.autoTable({
-                startY: 40,
+                startY: 35,
                 head: [['STAGIAIRE', 'VOILE (RACK)', 'SELLETTE', 'CASQUE', 'RADIO']],
                 body: rows,
-                headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
-                bodyStyles: { fontStyle: 'bold', fontSize: 10 },
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                bodyStyles: { fontStyle: 'bold', fontSize: 11, textColor: [0, 0, 0] }, // Tout en noir pour le PDF
                 columnStyles: {
-                    0: { cellWidth: 50 },
-                    1: { cellWidth: 50 },
-                    2: { cellWidth: 30 },
-                    3: { cellWidth: 30 },
-                    4: { cellWidth: 30 }
+                    0: { cellWidth: 70 },
+                    1: { cellWidth: 70 },
+                    2: { cellWidth: 40, halign: 'center' },
+                    3: { cellWidth: 45, halign: 'center' },
+                    4: { cellWidth: 45, halign: 'center' }
                 },
-                theme: 'grid'
+                theme: 'grid',
+                styles: { minCellHeight: 12, valign: 'middle' }
             });
 
-            doc.save(`Dispatch_${stage.titre}.pdf`);
+            doc.save(`Fiche_${stage.titre}.pdf`);
         }
     </script>
 </body>
